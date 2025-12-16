@@ -55,13 +55,43 @@ class ChangePasswordSerializer(serializers.Serializer):
 class UserCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating new users (admin only)."""
     
-    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    password = serializers.CharField(write_only=True, required=False, validators=[validate_password])
+    username = serializers.CharField(required=False)
     
     class Meta:
         model = User
         fields = ('username', 'password', 'email', 'full_name', 'phone', 'role', 'is_active')
     
     def create(self, validated_data):
-        """Create user with hashed password."""
+        """Create user with hashed password and auto-generated username."""
+        if 'username' not in validated_data or not validated_data['username']:
+            full_name = validated_data.get('full_name', '')
+            if not full_name:
+                # If no full name, try to use email prefix
+                email = validated_data.get('email', '')
+                if email:
+                    base_username = email.split('@')[0]
+                else:
+                    raise serializers.ValidationError({"full_name": "Full name is required to auto-generate username."})
+            else:
+                import re
+                base_username = full_name.lower()
+                base_username = re.sub(r'[^a-z0-9]', '', base_username)
+            
+            if not base_username:
+                base_username = "user"
+                
+            username = base_username
+            counter = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+            
+            validated_data['username'] = username
+
+        # If password is not provided, use username as password
+        if 'password' not in validated_data or not validated_data['password']:
+            validated_data['password'] = validated_data.get('username')
+
         user = User.objects.create_user(**validated_data)
         return user

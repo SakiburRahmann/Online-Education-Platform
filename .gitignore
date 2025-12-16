@@ -83,3 +83,17 @@ htmlcov/
 *.bak
 *.tmp
 .cache/
+
+# Environment variables
+.env
+backend/.env
+
+# Node / Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/dist/
+
+# Logs
+npm-debug.log*
+yarn-error.log*
