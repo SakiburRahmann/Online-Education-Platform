@@ -119,6 +119,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         - No device fingerprint set yet (first login)
         - Device fingerprint matches stored fingerprint
         """
+        if self.role == 'admin' or self.is_superuser:
+            return True
+
         if not self.device_fingerprint:
             return True
         return self.device_fingerprint == fingerprint

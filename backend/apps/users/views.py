@@ -39,7 +39,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             # Check if user can login from this device
             if not user.can_login_from_device(device_fingerprint):
                 return Response({
-                    'error': 'This account is already logged in from another device. Please logout from the other device first or contact admin to reset your device.'
+                    'error': 'This ID is already logged in on another device. You cannot login using a different device with the same ID.'
                 }, status=status.HTTP_403_FORBIDDEN)
         
         except User.DoesNotExist:
