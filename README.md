@@ -4,14 +4,14 @@ A professional full-stack web application for a Defense Coaching Center with an 
 
 ## Features
 
-- 🎯 **Public Landing Pages** - Modern, responsive UI/UX with SEO optimization
-- 👤 **User Authentication** - Secure JWT-based login with role-based access control
-- 📝 **IQ Testing System** - Timed tests with 100 questions and 30-minute duration
-- 💳 **Payment Integration** - Manual bKash payment verification (API integration planned)
-- 🎓 **Free Sample Test** - 20-question demo available to all visitors
-- 🛡️ **Advanced Security** - One-device-per-user restriction, password hashing, rate limiting
-- 👨‍💼 **Admin Portal** - Comprehensive question management, user management, and analytics
-- 📊 **Results & Analytics** - Detailed performance tracking and reporting
+- **Public Landing Pages** - Modern, responsive UI/UX with SEO optimization
+-  **User Authentication** - Secure JWT-based login with role-based access control
+- **IQ Testing System** - Timed tests with 100 questions and 30-minute duration
+- **Payment Integration** - Manual bKash payment verification (API integration planned)
+- **Free Sample Test** - 20-question demo available to all visitors
+- **Advanced Security** - One-device-per-user restriction, password hashing, rate limiting
+- **Admin Portal** - Comprehensive question management, user management, and analytics
+- **Results & Analytics** - Detailed performance tracking and reporting
 
 ## Tech Stack
 
@@ -98,14 +98,14 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
 ## Security Features
 
-- ✅ JWT-based authentication with refresh tokens
-- ✅ Password hashing with Argon2
-- ✅ One-device-per-user restriction
-- ✅ Rate limiting on authentication endpoints
-- ✅ CORS policy enforcement
-- ✅ Input validation and sanitization
-- ✅ Backend timer enforcement to prevent cheating
-- ✅ HTTPS enforcement in production
+- JWT-based authentication with refresh tokens
+- Password hashing with Argon2
+- One-device-per-user restriction
+- Rate limiting on authentication endpoints
+- CORS policy enforcement
+- Input validation and sanitization
+- Backend timer enforcement to prevent cheating
+- HTTPS enforcement in production
 
 ## License
 

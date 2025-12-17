@@ -66,6 +66,13 @@ build/
 dist/
 next-env.d.ts
 
+# Frontend specific
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/dist/
+frontend/node_modules/
+
 # Misc
 *.bak
 *.tmp
