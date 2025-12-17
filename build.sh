@@ -2,9 +2,8 @@
 # Exit on error
 set -o errexit
 
-# Install dependencies
-pip install -r backend/requirements/base.txt
-pip install -r backend/requirements/production.txt
+# Install dependencies from root requirements.txt
+pip install -r requirements.txt
 
 # Run migrations and collect static files
 cd backend
