@@ -1,11 +1,14 @@
 # Defense Coaching Center & IQ Test Platform
+> **⚠️ CONFIDENTIAL & PROPRIETARY**
+> This source code is the property of the client. Unauthorized copying, distribution, or use of this file is strictly prohibited.
+> **For Internal Development & Deployment Only.**
 
 A professional full-stack web application for a Defense Coaching Center with an integrated IQ Test Platform.
 
 ## Features
 
 - **Public Landing Pages** - Modern, responsive UI/UX with SEO optimization
--  **User Authentication** - Secure JWT-based login with role-based access control
+- **User Authentication** - Secure JWT-based login with role-based access control
 - **IQ Testing System** - Timed tests with 100 questions and 30-minute duration
 - **Payment Integration** - Manual bKash payment verification (API integration planned)
 - **Free Sample Test** - 20-question demo available to all visitors
@@ -35,9 +38,9 @@ A professional full-stack web application for a Defense Coaching Center with an 
 - **Backend Hosting:** Render/Railway
 - **Database:** Managed PostgreSQL (Neon/Supabase)
 
-## Quick Start
+## Internal System Setup
 
-### Local Development with Docker
+### Local Deployment (Authorized Devs Only)
 
 1. **Set up environment variables**
    ```bash
