@@ -1,6 +1,6 @@
 # Defense Coaching Center & IQ Test Platform
 > **⚠️ CONFIDENTIAL & PROPRIETARY**
-> This source code is the property of the client. Unauthorized copying, distribution, or use of this file is strictly prohibited.
+> This source code is the property of the owner of the repository. Unauthorized copying, distribution, or use of this file is strictly prohibited.
 > **For Internal Development & Deployment Only.**
 
 A professional full-stack web application for a Defense Coaching Center with an integrated IQ Test Platform.
