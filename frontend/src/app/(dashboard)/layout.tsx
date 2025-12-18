@@ -46,6 +46,7 @@ export default function DashboardLayout({
         { href: '/admin/dashboard', label: 'Overview', icon: LayoutDashboard },
         { href: '/admin/users', label: 'Users', icon: User },
         { href: '/admin/tests', label: 'Tests', icon: Brain },
+        { href: '/admin/settings', label: 'Settings', icon: Shield },
     ];
 
     const links = user?.role === 'admin' ? adminLinks : sidebarLinks;
