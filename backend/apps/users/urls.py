@@ -4,11 +4,12 @@ URL patterns for user authentication.
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
-from .views import CustomTokenObtainPairView, LogoutView, UserViewSet
+from .views import CustomTokenObtainPairView, LogoutView, UserViewSet, AdminDashboardViewSet
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='user')
 router.register(r'logout', LogoutView, basename='logout')
+router.register(r'dashboard-stats', AdminDashboardViewSet, basename='dashboard-stats')
 
 urlpatterns = [
     # JWT Authentication

@@ -8,6 +8,10 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
+from django.utils import timezone
+from django.db.models import Sum, Count
+from django.db.models.functions import TruncDate
+from datetime import timedelta
 from .serializers import (
     UserSerializer, 
     CustomTokenObtainPairSerializer,
@@ -15,6 +19,8 @@ from .serializers import (
     UserCreateSerializer
 )
 from utils.device_tracking import get_client_ip
+from apps.tests.models import Test
+from apps.payments.models import Payment, UserTestAccess
 
 User = get_user_model()
 
@@ -159,3 +165,53 @@ class UserViewSet(viewsets.ModelViewSet):
         user.device_fingerprint = None
         user.save()
         return Response({'detail': f'Device fingerprint for {user.username} has been cleared.'})
+
+
+class AdminDashboardViewSet(viewsets.ViewSet):
+    """ViewSet for admin dashboard statistics."""
+    permission_classes = [IsAdminUser]
+
+    def list(self, request):
+        """Get aggregated dashboard statistics."""
+        # Stats
+        total_students = User.objects.filter(role='student').count()
+        total_tests = Test.objects.count()
+        pending_payments = Payment.objects.filter(status='pending').count()
+        total_revenue = Payment.objects.filter(status='approved').aggregate(Sum('amount'))['amount__sum'] or 0
+
+        # Registration Stats (Last 7 days)
+        last_7_days = timezone.now() - timedelta(days=7)
+        registrations = User.objects.filter(
+            role='student',
+            created_at__gte=last_7_days
+        ).annotate(
+            date=TruncDate('created_at')
+        ).values('date').annotate(
+            count=Count('id')
+        ).order_by('date')
+
+        registration_data = []
+        for i in range(7):
+            date = (timezone.now() - timedelta(days=6-i)).date()
+            count = next((item['count'] for item in registrations if item['date'] == date), 0)
+            registration_data.append({
+                'name': date.strftime('%a'),
+                'students': count
+            })
+
+        # Recent Payments
+        recent_payments = Payment.objects.filter(status='pending').select_related('user').order_by('-created_at')[:5]
+        
+        from apps.payments.serializers import PaymentSerializer
+        payment_serializer = PaymentSerializer(recent_payments, many=True)
+
+        return Response({
+            'stats': {
+                'total_students': total_students,
+                'total_tests': total_tests,
+                'pending_payments': pending_payments,
+                'total_revenue': total_revenue,
+            },
+            'registration_data': registration_data,
+            'recent_payments': payment_serializer.data
+        })

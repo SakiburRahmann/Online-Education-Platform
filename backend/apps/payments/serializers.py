@@ -2,9 +2,11 @@ from rest_framework import serializers
 from .models import Payment, UserTestAccess
 
 class PaymentSerializer(serializers.ModelSerializer):
+    user_name = serializers.ReadOnlyField(source='user.full_name')
+    
     class Meta:
         model = Payment
-        fields = '__all__'
+        fields = ['id', 'user', 'user_name', 'test', 'amount', 'transaction_id', 'status', 'payment_method', 'notes', 'verified_by', 'verified_at', 'created_at', 'updated_at']
         read_only_fields = ['id', 'user', 'status', 'verified_by', 'verified_at', 'created_at', 'updated_at']
 
 class UserTestAccessSerializer(serializers.ModelSerializer):
