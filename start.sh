@@ -1,8 +1,4 @@
-#!/bin/bash
-
-# Exit on error
-set -e
-
+echo "--- VERSION: 2.0.0 (Dec 19 Fix) ---"
 echo "--- STARTING DEPLOYMENT STARTUP ---"
 
 # Wait for DB to be reachable if needed (optional but recommended for robustness)
@@ -39,6 +35,17 @@ python manage.py migrate --no-input
 
 echo "Running Seeding..."
 python seed_users.py
+
+echo "Verifying Users..."
+python -c "
+import os
+import django
+from django.contrib.auth import get_user_model
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', os.environ.get('DJANGO_SETTINGS_MODULE', 'config.settings.production'))
+django.setup()
+User = get_user_model()
+print(f'Total Users in Database: {User.objects.count()}')
+"
 
 echo "Starting Gunicorn..."
 gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
