@@ -5,4 +5,7 @@ set -o errexit
 # Install dependencies from root requirements.txt
 pip install -r requirements.txt
 
-echo "Dependencies installed successfully"
+# Collect static files
+python backend/manage.py collectstatic --no-input
+
+echo "Build completed successfully"
