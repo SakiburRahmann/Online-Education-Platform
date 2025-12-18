@@ -1,1 +1,1 @@
-web: cd backend && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+web: cd backend && python manage.py migrate --no-input && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
