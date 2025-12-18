@@ -5,6 +5,7 @@ from .serializers import QuestionSerializer, AdminQuestionSerializer
 class QuestionViewSet(viewsets.ModelViewSet):
     queryset = Question.objects.all()
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = None
 
     def get_serializer_class(self):
         if self.request.user.is_staff or self.request.user.is_superuser:

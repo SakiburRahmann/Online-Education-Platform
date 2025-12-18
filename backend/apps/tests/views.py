@@ -18,13 +18,16 @@ class TestViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def start_session(self, request, pk=None):
         test = self.get_object()
-        # Check if user already has an active session?
-        # For now, just create a new one
+        # Check for active session
+        active_session = TestSession.objects.filter(user=request.user, test=test, status='in_progress').first()
+        if active_session:
+            return Response(TestSessionSerializer(active_session).data)
+
         session = TestSession.objects.create(
             user=request.user,
             test=test,
-            start_time=timezone.now(),
-            status='started' # Assuming status field exists or logic handled in model
+            time_limit_seconds=test.duration_minutes * 60,
+            status='in_progress'
         )
         return Response(TestSessionSerializer(session).data, status=status.HTTP_201_CREATED)
 
@@ -39,11 +42,12 @@ class TestSessionViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def submit(self, request, pk=None):
         session = self.get_object()
-        if session.status == 'completed':
-            return Response({"error": "Test already submitted"}, status=status.HTTP_400_BAD_REQUEST)
+        if session.status != 'in_progress':
+            return Response({"error": "Test already submitted or expired"}, status=status.HTTP_400_BAD_REQUEST)
             
-        # Logic to calculate score would go here
-        session.end_time = timezone.now()
-        session.status = 'completed'
-        session.save()
+        # Optional: update answers one last time
+        if 'answers' in request.data:
+            session.answers = request.data['answers']
+
+        session.submit_test() # This uses the model method we optimized
         return Response(TestSessionSerializer(session).data)

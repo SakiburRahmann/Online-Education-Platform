@@ -9,25 +9,38 @@ import { KeyRound, ShieldCheck, AlertCircle } from "lucide-react";
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 
+import { toast } from 'sonner';
+
 export default function AdminSettingsPage() {
     const { user } = useAuthStore();
     const [loading, setLoading] = useState(false);
-    const [success, setSuccess] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const [formData, setFormData] = useState({
         old_password: '',
         new_password: '',
         confirm_password: '',
     });
 
+    const extractErrors = (data: any): string => {
+        if (!data) return "An unknown error occurred.";
+        if (typeof data === 'string') return data;
+        if (data.detail) return data.detail;
+        if (data.error) return data.error;
+
+        const errorMessages = Object.entries(data).map(([key, value]) => {
+            const message = Array.isArray(value) ? value[0] : value;
+            return `${key.replace(/_/g, ' ')}: ${message}`;
+        });
+
+        if (errorMessages.length > 0) return errorMessages.join(' | ');
+        return "An error occurred. Please check your credentials.";
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        setError(null);
-        setSuccess(false);
 
         if (formData.new_password !== formData.confirm_password) {
-            setError("New passwords do not match.");
+            toast.error("New passwords do not match.");
             setLoading(false);
             return;
         }
@@ -37,14 +50,14 @@ export default function AdminSettingsPage() {
                 old_password: formData.old_password,
                 new_password: formData.new_password,
             });
-            setSuccess(true);
+            toast.success("Password updated successfully!");
             setFormData({
                 old_password: '',
                 new_password: '',
                 confirm_password: '',
             });
         } catch (err: any) {
-            setError(err.response?.data?.error || err.response?.data?.old_password?.[0] || err.response?.data?.new_password?.[0] || "An error occurred. Please check your credentials.");
+            toast.error(extractErrors(err.response?.data));
         } finally {
             setLoading(false);
         }
@@ -104,19 +117,6 @@ export default function AdminSettingsPage() {
                         </CardHeader>
                         <CardContent>
                             <form onSubmit={handleSubmit} className="space-y-4">
-                                {success && (
-                                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3 text-green-700">
-                                        <ShieldCheck className="h-5 w-5" />
-                                        <p className="text-sm font-medium">Password updated successfully!</p>
-                                    </div>
-                                )}
-
-                                {error && (
-                                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 text-red-700">
-                                        <AlertCircle className="h-5 w-5" />
-                                        <p className="text-sm font-medium">{error}</p>
-                                    </div>
-                                )}
 
                                 <div className="space-y-2">
                                     <Label htmlFor="old_password">Current Password</Label>

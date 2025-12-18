@@ -1,8 +1,11 @@
-"""URL patterns for payments app."""
-from django.urls import path
+from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from .views import PaymentViewSet, UserTestAccessViewSet
 
 router = DefaultRouter()
-# Add viewsets here when created
+router.register(r'payments', PaymentViewSet)
+router.register(r'access', UserTestAccessViewSet)
 
-urlpatterns = router.urls
+urlpatterns = [
+    path('', include(router.urls)),
+]

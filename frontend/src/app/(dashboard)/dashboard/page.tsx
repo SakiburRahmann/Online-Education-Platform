@@ -1,22 +1,66 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from '@/store/auth';
-import { Brain, Trophy, Clock, CheckCircle, ArrowRight } from "lucide-react";
+import { Brain, Trophy, Clock, CheckCircle, ArrowRight, Loader2 } from "lucide-react";
 import Link from 'next/link';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import api from '@/lib/api';
 
-const data = [
-    { name: 'Test 1', score: 65 },
-    { name: 'Test 2', score: 72 },
-    { name: 'Test 3', score: 68 },
-    { name: 'Test 4', score: 85 },
-    { name: 'Test 5', score: 82 },
-];
+interface Analytics {
+    total_tests_taken: number;
+    average_score: string;
+    highest_score: string;
+    average_time_taken: number;
+}
+
+interface Activity {
+    id: string;
+    test_name: string;
+    score_percentage: string;
+    passed: boolean;
+    created_at: string;
+}
 
 export default function DashboardPage() {
     const { user } = useAuthStore();
+    const [analytics, setAnalytics] = useState<Analytics | null>(null);
+    const [activities, setActivities] = useState<Activity[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                const analyticsRes = await api.get('/results/analytics/');
+                const analyticsData = analyticsRes.data.results || analyticsRes.data;
+                if (Array.isArray(analyticsData) && analyticsData.length > 0) {
+                    setAnalytics(analyticsData[0]);
+                } else if (!Array.isArray(analyticsData)) {
+                    setAnalytics(analyticsData);
+                }
+
+                const activitiesRes = await api.get('/results/results/');
+                const activitiesData = activitiesRes.data.results || activitiesRes.data;
+                setActivities(Array.isArray(activitiesData) ? activitiesData.slice(0, 5) : []);
+
+                setLoading(false);
+            } catch (err) {
+                console.error("Failed to load dashboard data", err);
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, []);
+
+    if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin w-8 h-8 text-blue-600" /></div>;
+
+    const chartData = activities.slice().reverse().map((act, i) => ({
+        name: `Test ${i + 1}`,
+        score: parseFloat(act.score_percentage)
+    }));
 
     return (
         <div className="space-y-8">
@@ -34,7 +78,7 @@ export default function DashboardPage() {
                         </div>
                         <div>
                             <p className="text-sm font-medium text-gray-500">Tests Taken</p>
-                            <h3 className="text-2xl font-bold text-gray-900">12</h3>
+                            <h3 className="text-2xl font-bold text-gray-900">{analytics?.total_tests_taken || 0}</h3>
                         </div>
                     </CardContent>
                 </Card>
@@ -46,7 +90,7 @@ export default function DashboardPage() {
                         </div>
                         <div>
                             <p className="text-sm font-medium text-gray-500">Average Score</p>
-                            <h3 className="text-2xl font-bold text-gray-900">76%</h3>
+                            <h3 className="text-2xl font-bold text-gray-900">{analytics?.average_score || 0}%</h3>
                         </div>
                     </CardContent>
                 </Card>
@@ -58,7 +102,7 @@ export default function DashboardPage() {
                         </div>
                         <div>
                             <p className="text-sm font-medium text-gray-500">Highest Score</p>
-                            <h3 className="text-2xl font-bold text-gray-900">92%</h3>
+                            <h3 className="text-2xl font-bold text-gray-900">{analytics?.highest_score || 0}%</h3>
                         </div>
                     </CardContent>
                 </Card>
@@ -69,8 +113,8 @@ export default function DashboardPage() {
                             <Clock className="h-6 w-6 text-orange-600" />
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-gray-500">Time Spent</p>
-                            <h3 className="text-2xl font-bold text-gray-900">4.5h</h3>
+                            <p className="text-sm font-medium text-gray-500">Avg Time</p>
+                            <h3 className="text-2xl font-bold text-gray-900">{Math.round((analytics?.average_time_taken || 0) / 60)}m</h3>
                         </div>
                     </CardContent>
                 </Card>
@@ -84,21 +128,27 @@ export default function DashboardPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="h-[300px] w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={data}>
-                                    <defs>
-                                        <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#2563eb" stopOpacity={0.8} />
-                                            <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                    <XAxis dataKey="name" />
-                                    <YAxis />
-                                    <Tooltip />
-                                    <Area type="monotone" dataKey="score" stroke="#2563eb" fillOpacity={1} fill="url(#colorScore)" />
-                                </AreaChart>
-                            </ResponsiveContainer>
+                            {chartData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={chartData}>
+                                        <defs>
+                                            <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#2563eb" stopOpacity={0.8} />
+                                                <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                        <XAxis dataKey="name" />
+                                        <YAxis />
+                                        <Tooltip />
+                                        <Area type="monotone" dataKey="score" stroke="#2563eb" fillOpacity={1} fill="url(#colorScore)" />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="h-full flex items-center justify-center text-gray-400">
+                                    Take some tests to see your progress chart!
+                                </div>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
@@ -127,23 +177,27 @@ export default function DashboardPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                {[1, 2, 3].map((i) => (
-                                    <div key={i} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
+                                {activities.length > 0 ? activities.map((act) => (
+                                    <div key={act.id} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
                                         <div className="flex items-center gap-3">
                                             <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center font-bold text-gray-500">
                                                 iq
                                             </div>
                                             <div>
-                                                <p className="font-medium text-gray-900">Mixed IQ Test #{i}</p>
-                                                <p className="text-xs text-gray-500">2 hours ago</p>
+                                                <p className="font-medium text-gray-900">{act.test_name}</p>
+                                                <p className="text-xs text-gray-500">{new Date(act.created_at).toLocaleDateString()}</p>
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="font-bold text-green-600">Passed</p>
-                                            <p className="text-xs text-gray-500">Score: 85%</p>
+                                            <p className={`font-bold ${act.passed ? 'text-green-600' : 'text-red-600'}`}>
+                                                {act.passed ? 'Passed' : 'Failed'}
+                                            </p>
+                                            <p className="text-xs text-gray-500">Score: {parseFloat(act.score_percentage)}%</p>
                                         </div>
                                     </div>
-                                ))}
+                                )) : (
+                                    <p className="text-center text-gray-400 py-4">No activity yet.</p>
+                                )}
                             </div>
                             <Button variant="ghost" className="w-full mt-4 text-blue-600" asChild>
                                 <Link href="/dashboard/results">View All History <ArrowRight className="ml-2 h-4 w-4" /></Link>
@@ -152,6 +206,6 @@ export default function DashboardPage() {
                     </Card>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

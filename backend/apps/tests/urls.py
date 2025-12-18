@@ -5,7 +5,7 @@ from .views import TestViewSet, TestSessionViewSet
 
 router = DefaultRouter()
 router.register(r'tests', TestViewSet)
-router.register(r'sessions', TestSessionViewSet)
+router.register(r'test-sessions', TestSessionViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

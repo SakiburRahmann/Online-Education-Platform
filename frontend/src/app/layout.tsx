@@ -11,6 +11,8 @@ export const metadata: Metadata = {
     description: 'Prepare for defense services recruitment with premium IQ tests and coaching',
 };
 
+import { Toaster } from 'sonner';
+
 export default function RootLayout({
     children,
 }: {
@@ -26,6 +28,7 @@ export default function RootLayout({
                     </main>
                     <Footer />
                 </div>
+                <Toaster position="top-center" richColors />
             </body>
         </html>
     );

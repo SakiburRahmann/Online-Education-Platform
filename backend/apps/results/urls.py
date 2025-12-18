@@ -1,8 +1,11 @@
-"""URL patterns for results app."""
-from django.urls import path
+from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from .views import ResultViewSet, AnalyticsViewSet
 
 router = DefaultRouter()
-# Add viewsets here when created
+router.register(r'results', ResultViewSet)
+router.register(r'analytics', AnalyticsViewSet)
 
-urlpatterns = router.urls
+urlpatterns = [
+    path('', include(router.urls)),
+]

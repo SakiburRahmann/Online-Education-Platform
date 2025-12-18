@@ -42,13 +42,24 @@ class ChangePasswordSerializer(serializers.Serializer):
     """Serializer for password change."""
     
     old_password = serializers.CharField(required=True, write_only=True)
-    new_password =serializers.CharField(required=True, write_only=True, validators=[validate_password])
+    new_password = serializers.CharField(required=True, write_only=True)
     
     def validate_old_password(self, value):
         """Verify old password."""
         user = self.context['request'].user
         if not user.check_password(value):
             raise serializers.ValidationError("Old password is incorrect.")
+        return value
+
+    def validate_new_password(self, value):
+        """Validate password complexity using Django's built-in validators."""
+        user = self.context['request'].user
+        try:
+            validate_password(value, user)
+        except Exception as e:
+            # Re-raise as a proper serializer validation error if needed
+            # (DRF usually handles Django's ValidationError, but this is more explicit)
+            raise serializers.ValidationError(list(e.messages) if hasattr(e, 'messages') else str(e))
         return value
 
 

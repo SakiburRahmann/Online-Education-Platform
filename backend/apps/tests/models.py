@@ -136,17 +136,17 @@ class TestSession(models.Model):
         if not self.answers:
             return 0, 0.0, False
         
+        # Optimize: Fetch all relevant questions in one query
+        question_ids = self.answers.keys()
+        questions_map = {str(q.id): q for q in Question.objects.filter(id__in=question_ids, test=self.test)}
+        
         correct_count = 0
-        total_questions = 0
+        total_questions = self.test.total_questions
         
         for question_id, answer_id in self.answers.items():
-            try:
-                question = Question.objects.get(id=question_id, test=self.test)
-                total_questions += 1
-                if str(question.correct_answer) == str(answer_id):
-                    correct_count += 1
-            except Question.DoesNotExist:
-                continue
+            question = questions_map.get(str(question_id))
+            if question and str(question.correct_answer) == str(answer_id):
+                correct_count += 1
         
         if total_questions == 0:
             return 0, 0.0, False
@@ -159,6 +159,7 @@ class TestSession(models.Model):
     def submit_test(self):
         """Mark test as completed and calculate score."""
         from django.utils import timezone
+        from apps.results.models import Result, PerformanceAnalytics
         
         self.status = 'completed'
         self.submitted_at = timezone.now()
@@ -175,3 +176,12 @@ class TestSession(models.Model):
         self.passed = passed
         
         self.save()
+
+        # Create Result and update Analytics
+        try:
+            result = Result.create_from_session(self)
+            analytics, _ = PerformanceAnalytics.objects.get_or_create(user=self.user)
+            analytics.update_from_result(result)
+        except Exception as e:
+            # Log error but don't fail the submission
+            print(f"Error creating result or updating analytics: {e}")

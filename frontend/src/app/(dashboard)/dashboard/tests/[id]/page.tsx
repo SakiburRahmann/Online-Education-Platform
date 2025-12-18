@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,15 +16,15 @@ interface Question {
 
 interface TestDetail {
     id: string;
-    name: string; // Serializer uses 'title' or 'name'? Model has 'name', Serializer had 'title' in fields list but 'name' in model. Wait, serializer fields must match model or be defined. 
-    // In step 451 I wrote: fields = ['id', 'title', ...]. But model has 'name'. This will throw error if 'title' is not on model.
-    // I need to check serializer first.
+    name: string;
     description: string;
     duration_minutes: number;
     total_questions: number;
 }
 
-export default function TestRunnerPage({ params }: { params: { id: string } }) {
+export default function TestRunnerPage({ params }: { params: Promise<{ id: string }> }) {
+    const unwrappedParams = React.use(params);
+    const id = unwrappedParams.id;
     const router = useRouter();
     const [test, setTest] = useState<TestDetail | null>(null);
     const [questions, setQuestions] = useState<Question[]>([]);
@@ -42,20 +42,18 @@ export default function TestRunnerPage({ params }: { params: { id: string } }) {
         const fetchTestData = async () => {
             try {
                 // 1. Fetch Test Details
-                // Note: Serializer might have 'title' instead of 'name' error. 
-                // Let's assume I fix serializer or it maps correctly if I used model field name.
-                // Actually, if serializer has 'title' and model has 'name', DRF raises error on startup usually.
-                // Ill assume 'name' for now.
-                const testRes = await api.get(`/tests/tests/${params.id}/`);
+                // Standardized backend uses 'name'
+                const testRes = await api.get(`/tests/tests/${id}/`);
                 setTest(testRes.data);
                 setTimeLeft(testRes.data.duration_minutes * 60);
 
                 // 2. Fetch Questions
-                const questionsRes = await api.get(`/questions/?test_id=${params.id}`);
-                setQuestions(questionsRes.data);
+                const questionsRes = await api.get(`/questions/?test_id=${id}`);
+                const questionsData = questionsRes.data.results || questionsRes.data;
+                setQuestions(Array.isArray(questionsData) ? questionsData : []);
 
                 // 3. Start Session
-                const sessionRes = await api.post(`/tests/tests/${params.id}/start_session/`);
+                const sessionRes = await api.post(`/tests/tests/${id}/start_session/`);
                 setSessionId(sessionRes.data.id);
 
                 setLoading(false);
@@ -66,10 +64,10 @@ export default function TestRunnerPage({ params }: { params: { id: string } }) {
             }
         };
 
-        if (params.id) {
+        if (id) {
             fetchTestData();
         }
-    }, [params.id]);
+    }, [id]);
 
     // Timer logic
     useEffect(() => {
@@ -114,28 +112,11 @@ export default function TestRunnerPage({ params }: { params: { id: string } }) {
 
         setSubmitting(true);
         try {
-            if (sessionId) {
-                // Prepare answers object if needed by backend?
-                // TestSession model has 'answers' JSON field.
-                // We typically submit answers incrementally or bulk at end. 
-                // TestSessionViewSet.submit doesn't explicitly take answers in the body in the view I wrote?
-                // Wait, I wrote `submit` action in `TestSessionViewSet` but it only sets status to completed.
-                // It does NOT update partial answers unless I pass them.
-                // I need to update the session with answers BEFORE submitting or DURING submit.
-                // The serializer `TestSessionSerializer` has `answers` field implicit? 
-                // `fields=['id', ...]` I didn't include `answers` in fields!!
-                // This is a BUG in backend.
+            // Finalize submmission
+            await api.post(`/tests/test-sessions/${sessionId}/submit/`, { answers });
 
-                // For now, I will try to patch the session with answers first, then submit.
-                // But I need to update backend serializer first to allow writing answers.
-
-                // Assuming I fix backend:
-                await api.patch(`/tests/sessions/${sessionId}/`, { answers });
-                await api.post(`/tests/sessions/${sessionId}/submit/`);
-
-                setIsSubmitted(true);
-                router.push(`/dashboard/results/${sessionId}`); // Redirect to result page (need to build that properly or use ID)
-            }
+            setIsSubmitted(true);
+            router.push(`/dashboard/results/${sessionId}`);
         } catch (err) {
             console.error("Submit failed", err);
             alert("Failed to submit test. Please try again.");
