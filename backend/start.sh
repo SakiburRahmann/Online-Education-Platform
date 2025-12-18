@@ -1,9 +1,19 @@
-echo "--- VERSION: 2.0.0 (Dec 19 Fix) ---"
+echo "--- VERSION: 2.1.0 (Dec 19 Root Fix) ---"
+echo "Current Directory: $(pwd)"
+
+# If we are in the root, move to backend
+if [ -d "backend" ]; then
+    echo "Moving into backend directory..."
+    cd backend
+fi
+
+# Exit on error after move
+set -e
+
 echo "--- STARTING DEPLOYMENT STARTUP ---"
 
-# Wait for DB to be reachable if needed (optional but recommended for robustness)
+# Wait for DB to be reachable
 echo "Waiting for database..."
-cd backend
 python -c "
 import sys
 import os
@@ -16,7 +26,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', os.environ.get('DJANGO_SETTINGS_
 django.setup()
 
 attempts = 0
-while attempts < 10:
+while attempts < 15:
     try:
         connections['default'].cursor()
         print('Database is ready!')
@@ -26,7 +36,7 @@ while attempts < 10:
         print(f'Database not ready (attempt {attempts})...')
         time.sleep(2)
 else:
-    print('Failed to connect to database after 10 attempts')
+    print('Failed to connect to database after 15 attempts')
     sys.exit(1)
 "
 
