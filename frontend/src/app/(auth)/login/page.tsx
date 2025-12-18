@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -24,8 +24,24 @@ type FormData = z.infer<typeof loginSchema>
 export default function LoginPage() {
     const router = useRouter()
     const login = useAuthStore((state) => state.login)
+    const { user, isAuthenticated } = useAuthStore()
     const [error, setError] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState(false)
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    useEffect(() => {
+        if (mounted && isAuthenticated && user) {
+            if (user.role === 'admin') {
+                router.push('/admin/dashboard')
+            } else {
+                router.push('/dashboard')
+            }
+        }
+    }, [mounted, isAuthenticated, user, router])
 
     const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
         resolver: zodResolver(loginSchema),
@@ -67,6 +83,10 @@ export default function LoginPage() {
         } finally {
             setIsLoading(false)
         }
+    }
+
+    if (!mounted || isAuthenticated) {
+        return null
     }
 
     return (

@@ -131,3 +131,24 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'Password changed successfully.'}, status=status.HTTP_200_OK)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
+    def reset_password(self, request, pk=None):
+        """Admin action to reset any user's password."""
+        user = self.get_object()
+        new_password = request.data.get('password')
+        
+        if not new_password:
+            return Response({'error': 'Password is required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        user.set_password(new_password)
+        user.save()
+        return Response({'detail': f'Password for {user.username} has been reset successfully.'})
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
+    def reset_device(self, request, pk=None):
+        """Admin action to reset a user's device fingerprint."""
+        user = self.get_object()
+        user.device_fingerprint = None
+        user.save()
+        return Response({'detail': f'Device fingerprint for {user.username} has been cleared.'})
