@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     description: 'Prepare for defense services recruitment with premium IQ tests and coaching',
 };
 
-import { Toaster } from 'sonner';
+import { Providers } from './Providers';
 
 export default function RootLayout({
     children,
@@ -21,14 +21,15 @@ export default function RootLayout({
     return (
         <html lang="en" suppressHydrationWarning>
             <body className={inter.className} suppressHydrationWarning>
-                <div className="min-h-screen flex flex-col">
-                    <Navbar />
-                    <main className="flex-grow">
-                        {children}
-                    </main>
-                    <Footer />
-                </div>
-                <Toaster position="top-center" richColors />
+                <Providers>
+                    <div className="min-h-screen flex flex-col">
+                        <Navbar />
+                        <main className="flex-grow">
+                            {children}
+                        </main>
+                        <Footer />
+                    </div>
+                </Providers>
             </body>
         </html>
     );
