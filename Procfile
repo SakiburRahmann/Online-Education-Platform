@@ -1,1 +1,1 @@
-web: cd backend && echo "Running Migrations..." && python manage.py migrate --no-input && echo "Running Seeding..." && python seed_users.py && echo "Starting Gunicorn..." && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+web: bash start.sh
