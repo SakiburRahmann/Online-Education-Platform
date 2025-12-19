@@ -35,7 +35,105 @@ interface EvaluationResult {
 }
 
 export default function SampleTestPage() {
-    // ... (rest of code)
+    const [started, setStarted] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [questions, setQuestions] = useState<Question[]>([]);
+    const [currentQ, setCurrentQ] = useState(0);
+    const [answers, setAnswers] = useState<Record<string, string>>({});
+    const [result, setResult] = useState<EvaluationResult | null>(null);
+    const [timeLeft, setTimeLeft] = useState(30 * 60);
+
+    const startTest = async () => {
+        setLoading(true);
+        try {
+            const res = await api.get(`/tests/tests/${SET_1_ID}/public_questions/`);
+            setQuestions(res.data);
+            setStarted(true);
+            setLoading(false);
+        } catch (err) {
+            console.error("Failed to load sample test:", err);
+            setLoading(false);
+            alert("Failed to load test. Please try again later.");
+        }
+    };
+
+    useEffect(() => {
+        if (!started || !questions.length || result) return;
+
+        const timer = setInterval(() => {
+            setTimeLeft((prev) => {
+                if (prev <= 1) {
+                    clearInterval(timer);
+                    handleSubmit();
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [started, questions, result]);
+
+    const handleAnswer = (optionId: string) => {
+        setAnswers(prev => ({ ...prev, [questions[currentQ].id]: optionId }));
+    };
+
+    const handleNext = () => {
+        if (currentQ < questions.length - 1) {
+            setCurrentQ(currentQ + 1);
+        } else {
+            handleSubmit();
+        }
+    };
+
+    const handleSubmit = async () => {
+        setLoading(true);
+        try {
+            const res = await api.post(`/tests/tests/${SET_1_ID}/public_evaluate/`, { answers });
+            setResult(res.data);
+            setLoading(false);
+        } catch (err) {
+            console.error("Failed to submit test:", err);
+            setLoading(false);
+            alert("Failed to submit test. Please try again.");
+        }
+    };
+
+    const formatTime = (seconds: number) => {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    };
+
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh]">
+                <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
+                <p className="text-gray-600">Loading...</p>
+            </div>
+        );
+    }
+
+    if (!started && !result) {
+        return (
+            <div className="max-w-4xl mx-auto py-20 px-4 text-center">
+                <div className="bg-white p-12 rounded-2xl shadow-lg border">
+                    <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <Clock className="w-10 h-10 text-blue-600" />
+                    </div>
+                    <h1 className="text-4xl font-bold text-gray-900 mb-6">Free IQ Practice Test (Set 1)</h1>
+                    <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                        Take a full-length sample test from our premium collection.
+                        <br /><br />
+                        <strong>Details:</strong> 30 Minutes • Real Questions • Instant Results & Explanations.
+                    </p>
+                    <Button size="lg" className="text-lg px-12 py-6" onClick={startTest}>
+                        Start Free Test
+                    </Button>
+                </div>
+            </div>
+        );
+    }
     if (result) {
         return (
             <div className="max-w-4xl mx-auto py-12 px-4">
