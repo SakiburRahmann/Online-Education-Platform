@@ -52,6 +52,12 @@ class Result(models.Model):
         blank=True,
         help_text="Percentile ranking"
     )
+    accuracy = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0.00,
+        help_text="Accuracy percentage (Correct / Answered)"
+    )
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -79,6 +85,13 @@ class Result(models.Model):
         wrong_answers = len(session.answers) - correct_answers
         unanswered = total_questions - len(session.answers)
         
+        # Calculate Accuracy: Correct / (Correct + Wrong) * 100
+        answered_count = len(session.answers)
+        if answered_count > 0:
+            accuracy = (correct_answers / answered_count) * 100
+        else:
+            accuracy = 0.00
+            
         result = cls.objects.create(
             user=session.user,
             test=session.test,
@@ -90,7 +103,8 @@ class Result(models.Model):
             score_percentage=session.percentage or 0,
             passed=session.passed or False,
             time_limit_seconds=session.time_limit_seconds,
-            time_taken_seconds=session.time_spent_seconds
+            time_taken_seconds=session.time_spent_seconds,
+            accuracy=accuracy
         )
         
         return result
@@ -112,6 +126,7 @@ class PerformanceAnalytics(models.Model):
     total_tests_taken = models.IntegerField(default=0)
     total_tests_passed = models.IntegerField(default=0)
     average_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    average_accuracy = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     highest_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     lowest_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     
@@ -148,9 +163,14 @@ class PerformanceAnalytics(models.Model):
         # Update average score
         if self.total_tests_taken == 1:
             self.average_score = result.score_percentage
+            self.average_accuracy = result.accuracy
         else:
+            # Weighted average calculation
             total_score = (self.average_score * (self.total_tests_taken - 1)) + result.score_percentage
             self.average_score = total_score / self.total_tests_taken
+            
+            total_accuracy = (self.average_accuracy * (self.total_tests_taken - 1)) + result.accuracy
+            self.average_accuracy = total_accuracy / self.total_tests_taken
         
         # Update highest/lowest scores
         if result.score_percentage > self.highest_score:

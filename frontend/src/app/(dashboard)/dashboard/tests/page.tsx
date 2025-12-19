@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Clock, HelpCircle, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
+import { Clock, HelpCircle, AlertTriangle, Loader2 } from "lucide-react";
 import Link from 'next/link';
 import api from '@/lib/api';
 
@@ -30,7 +30,7 @@ export default function TestsPage() {
                 const testsData = res.data.results || res.data;
                 setTests(Array.isArray(testsData) ? testsData : []);
                 setLoading(false);
-            } catch (err: any) {
+            } catch {
                 setError("Failed to load tests.");
                 setLoading(false);
             }

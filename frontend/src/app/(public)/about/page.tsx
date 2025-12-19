@@ -9,7 +9,7 @@ export default function AboutPage() {
                 <div className="text-center mb-16">
                     <h1 className="text-4xl font-bold text-gray-900 mb-4">About Defense Coaching Center</h1>
                     <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                        We are dedicated to shaping the future leaders of our nation's defense forces through comprehensive preparation and expert guidance.
+                        We are dedicated to shaping the future leaders of our nation&apos;s defense forces through comprehensive preparation and expert guidance.
                     </p>
                 </div>
 

@@ -39,7 +39,7 @@ export default function SampleTestPage() {
                     </div>
                     <h1 className="text-4xl font-bold text-gray-900 mb-6">Free IQ Sample Test</h1>
                     <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-                        Experience our testing platform with 3 simulated questions. This test is free and doesn't require registration.
+                        Experience our testing platform with 3 simulated questions. This test is free and doesn&apos;t require registration.
                         <br /><br />
                         <strong>Note:</strong> The full premium tests contain 100 questions with strict 30-minute timing.
                     </p>
@@ -63,7 +63,7 @@ export default function SampleTestPage() {
                             <p className="text-gray-600 mb-2">You scored:</p>
                             <h2 className="text-6xl font-bold text-blue-600 mb-6">{score} / {sampleQuestions.length}</h2>
                             <p className="text-gray-500">
-                                That's {Math.round((score / sampleQuestions.length) * 100)}% accuracy.
+                                That&apos;s {Math.round((score / sampleQuestions.length) * 100)}% accuracy.
                             </p>
                         </div>
                         <div className="bg-blue-50 p-6 rounded-lg text-left mb-6">

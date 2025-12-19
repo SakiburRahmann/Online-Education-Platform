@@ -12,6 +12,7 @@ import api from '@/lib/api';
 interface Analytics {
     total_tests_taken: number;
     average_score: string;
+    average_accuracy: string;
     highest_score: string;
     average_time_taken: number;
 }
@@ -20,6 +21,7 @@ interface Activity {
     id: string;
     test_name: string;
     score_percentage: string;
+    accuracy: string;
     passed: boolean;
     created_at: string;
 }
@@ -43,7 +45,7 @@ export default function DashboardPage() {
 
                 const activitiesRes = await api.get('/results/results/');
                 const activitiesData = activitiesRes.data.results || activitiesRes.data;
-                setActivities(Array.isArray(activitiesData) ? activitiesData.slice(0, 5) : []);
+                setActivities(Array.isArray(activitiesData) ? activitiesData : []);
 
                 setLoading(false);
             } catch (err) {
@@ -97,8 +99,20 @@ export default function DashboardPage() {
 
                 <Card>
                     <CardContent className="p-6 flex items-center gap-4">
+                        <div className="p-4 bg-indigo-100 rounded-full">
+                            <CheckCircle className="h-6 w-6 text-indigo-600" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-gray-500">Avg Accuracy</p>
+                            <h3 className="text-2xl font-bold text-gray-900">{Math.round(parseFloat(analytics?.average_accuracy || '0'))}%</h3>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardContent className="p-6 flex items-center gap-4">
                         <div className="p-4 bg-purple-100 rounded-full">
-                            <CheckCircle className="h-6 w-6 text-purple-600" />
+                            <Trophy className="h-6 w-6 text-purple-600" />
                         </div>
                         <div>
                             <p className="text-sm font-medium text-gray-500">Highest Score</p>
@@ -177,7 +191,7 @@ export default function DashboardPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                {activities.length > 0 ? activities.map((act) => (
+                                {activities.length > 0 ? activities.slice(0, 5).map((act) => (
                                     <div key={act.id} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
                                         <div className="flex items-center gap-3">
                                             <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center font-bold text-gray-500">
@@ -193,6 +207,7 @@ export default function DashboardPage() {
                                                 {act.passed ? 'Passed' : 'Failed'}
                                             </p>
                                             <p className="text-xs text-gray-500">Score: {parseFloat(act.score_percentage)}%</p>
+                                            <p className="text-xs text-gray-400">Acc: {Math.round(parseFloat(act.accuracy || '0'))}%</p>
                                         </div>
                                     </div>
                                 )) : (

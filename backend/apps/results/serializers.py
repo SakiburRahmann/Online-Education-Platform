@@ -9,7 +9,7 @@ class ResultSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'test', 'test_name', 'test_session', 
             'total_questions', 'correct_answers', 'wrong_answers', 'unanswered',
-            'score_percentage', 'passed', 'time_taken_seconds', 'created_at'
+            'score_percentage', 'passed', 'time_taken_seconds', 'accuracy', 'created_at'
         ]
 
 class ResultDetailSerializer(ResultSerializer):

@@ -13,10 +13,6 @@ export default function ViewUserPage({ params }: { params: Promise<{ id: string 
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        if (id) fetchUser(id);
-    }, [id]);
-
     const fetchUser = async (userId: string) => {
         try {
             const res = await api.get(`/auth/users/${userId}/`);
@@ -27,6 +23,14 @@ export default function ViewUserPage({ params }: { params: Promise<{ id: string 
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (id) {
+            const t = setTimeout(() => fetchUser(id), 0);
+            return () => clearTimeout(t);
+        }
+    }, [id]);
+
 
     if (loading) return <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>;
     if (!user) return <div className="p-8 text-center text-red-500">User not found</div>;

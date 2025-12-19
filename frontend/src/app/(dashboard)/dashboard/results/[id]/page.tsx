@@ -27,6 +27,7 @@ interface ResultDetail {
     wrong_answers: number;
     unanswered: number;
     time_taken_seconds: number;
+    accuracy: string;
     created_at: string;
     review_data?: ReviewItem[];
 }
@@ -64,7 +65,7 @@ export default function ResultDetailPage({ params }: { params: Promise<{ id: str
     if (error) return <div className="text-center py-20 text-red-600">{error}</div>;
     if (!result) return <div className="text-center py-20">Result not found.</div>;
 
-    const accuracy = (result.correct_answers / result.total_questions * 100);
+    const accuracy = parseFloat(result.accuracy || '0');
 
     return (
         <div className="space-y-8 pb-20">

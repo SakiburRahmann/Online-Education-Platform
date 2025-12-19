@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Loader2, Plus, Trash2, UserCog, KeyRound, Smartphone, X, Save } from "lucide-react";
+import { Loader2, Plus, Trash2, KeyRound, Smartphone, X, Save } from "lucide-react";
 import api from '@/lib/api';
 
 interface User {

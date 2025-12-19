@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clock, CheckCircle, Shield, Brain } from 'lucide-react';
+import { Clock, CheckCircle, Brain } from 'lucide-react';
 
 export default function Home() {
     return (

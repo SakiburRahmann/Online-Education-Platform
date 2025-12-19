@@ -21,6 +21,13 @@ export default function Navbar() {
         { href: '/sample-test', label: 'Free Sample Test' },
     ];
 
+    const dashboardLinks = [
+        { href: user?.role === 'admin' ? '/admin/dashboard' : '/dashboard', label: 'Overview' },
+        { href: user?.role === 'admin' ? '/admin/tests' : '/dashboard/tests', label: user?.role === 'admin' ? 'Tests' : 'Take IQ Test' },
+        { href: user?.role === 'admin' ? '/admin/users' : '/dashboard/results', label: user?.role === 'admin' ? 'Users' : 'My Results' },
+        { href: user?.role === 'admin' ? '/admin/settings' : '/dashboard/profile', label: user?.role === 'admin' ? 'Settings' : 'Profile' },
+    ];
+
     return (
         <nav className="bg-white border-b sticky top-0 z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -91,8 +98,8 @@ export default function Navbar() {
                                 key={link.href}
                                 href={link.href}
                                 className={`block px-3 py-2 rounded-md text-base font-medium ${isActive(link.href)
-                                        ? 'bg-blue-50 text-blue-600'
-                                        : 'text-gray-600 hover:bg-gray-50'
+                                    ? 'bg-blue-50 text-blue-600'
+                                    : 'text-gray-600 hover:bg-gray-50'
                                     }`}
                                 onClick={() => setIsMenuOpen(false)}
                             >
@@ -101,13 +108,24 @@ export default function Navbar() {
                         ))}
                         {isAuthenticated ? (
                             <>
-                                <Link
-                                    href={user?.role === 'admin' ? '/admin/dashboard' : '/dashboard'}
-                                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:bg-gray-50"
-                                    onClick={() => setIsMenuOpen(false)}
-                                >
-                                    Dashboard
-                                </Link>
+                                <div className="border-t border-gray-200 my-2 pt-2">
+                                    <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                        Dashboard
+                                    </div>
+                                    {dashboardLinks.map((link) => (
+                                        <Link
+                                            key={link.href}
+                                            href={link.href}
+                                            className={`block px-3 py-2 rounded-md text-base font-medium ${isActive(link.href)
+                                                ? 'bg-blue-50 text-blue-600'
+                                                : 'text-gray-600 hover:bg-gray-50'
+                                                }`}
+                                            onClick={() => setIsMenuOpen(false)}
+                                        >
+                                            {link.label}
+                                        </Link>
+                                    ))}
+                                </div>
                                 <button
                                     onClick={() => {
                                         logout();

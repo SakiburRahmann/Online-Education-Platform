@@ -12,7 +12,7 @@ export default function ContactPage() {
                 <div className="text-center mb-16">
                     <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
                     <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                        Have questions about our programs or need assistance? We're here to help you on your journey.
+                        Have questions about our programs or need assistance? We&apos;re here to help you on your journey.
                     </p>
                 </div>
 
@@ -21,7 +21,7 @@ export default function ContactPage() {
                     <Card className="shadow-lg border-none">
                         <CardHeader>
                             <CardTitle>Send us a Message</CardTitle>
-                            <CardDescription>Fill out the form below and we'll get back to you shortly.</CardDescription>
+                            <CardDescription>Fill out the form below and we&apos;ll get back to you shortly.</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <form className="space-y-6">
@@ -66,7 +66,7 @@ export default function ContactPage() {
                                     <h3 className="font-bold text-gray-900 mb-1">Our Location</h3>
                                     <p className="text-gray-600">
                                         House #123, Road #45<br />
-                                        Defense Officer's Housing Society (DOHS)<br />
+                                        Defense Officer&apos;s Housing Society (DOHS)<br />
                                         Dhaka, Bangladesh
                                     </p>
                                 </div>

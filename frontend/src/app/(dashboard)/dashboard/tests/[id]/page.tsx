@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Clock, AlertTriangle, Loader2 } from "lucide-react";
+import { Clock, Loader2 } from "lucide-react";
 import api from '@/lib/api';
 
 interface Question {
@@ -69,7 +69,30 @@ export default function TestRunnerPage({ params }: { params: Promise<{ id: strin
         }
     }, [id]);
 
+    const handleSubmit = async (auto = false) => {
+        if (submitting || isSubmitted) return;
+
+        if (!auto && !confirm("Are you sure you want to submit?")) return;
+
+        setSubmitting(true);
+        try {
+            // Finalize submmission
+            await api.post(`/tests/test-sessions/${sessionId}/submit/`, { answers });
+
+            setIsSubmitted(true);
+            router.push(`/dashboard/results/${sessionId}`);
+        } catch (err) {
+            console.error("Submit failed", err);
+            alert("Failed to submit test. Please try again.");
+            setSubmitting(false);
+        }
+    };
+
     // Timer logic
+    const handleTimeout = () => {
+        handleSubmit(true);
+    };
+
     useEffect(() => {
         if (!loading && timeLeft > 0 && !isSubmitted) {
             const timer = setInterval(() => {
@@ -77,13 +100,11 @@ export default function TestRunnerPage({ params }: { params: Promise<{ id: strin
             }, 1000);
             return () => clearInterval(timer);
         } else if (timeLeft === 0 && !loading && !isSubmitted) {
-            handleTimeout();
+            const t = setTimeout(() => handleTimeout(), 0);
+            return () => clearTimeout(t);
         }
     }, [timeLeft, loading, isSubmitted]);
 
-    const handleTimeout = () => {
-        handleSubmit(true);
-    };
 
     const handleOptionSelect = (optionId: string) => {
         if (!questions[currentQuestionIndex]) return;
@@ -105,24 +126,6 @@ export default function TestRunnerPage({ params }: { params: Promise<{ id: strin
         }
     };
 
-    const handleSubmit = async (auto = false) => {
-        if (submitting || isSubmitted) return;
-
-        if (!auto && !confirm("Are you sure you want to submit?")) return;
-
-        setSubmitting(true);
-        try {
-            // Finalize submmission
-            await api.post(`/tests/test-sessions/${sessionId}/submit/`, { answers });
-
-            setIsSubmitted(true);
-            router.push(`/dashboard/results/${sessionId}`);
-        } catch (err) {
-            console.error("Submit failed", err);
-            alert("Failed to submit test. Please try again.");
-            setSubmitting(false);
-        }
-    };
 
     const formatTime = (seconds: number) => {
         const m = Math.floor(seconds / 60);
