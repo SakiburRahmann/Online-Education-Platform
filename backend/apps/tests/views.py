@@ -58,11 +58,16 @@ class TestViewSet(viewsets.ModelViewSet):
         
         score = 0
         total = questions.count()
+        answered_count = 0
         review_data = []
         
         for q in questions:
             user_ans_id = user_answers.get(str(q.id))
-            is_correct = str(q.correct_answer) == str(user_ans_id) if user_ans_id else False
+            is_correct = False
+            
+            if user_ans_id:
+                answered_count += 1
+                is_correct = str(q.correct_answer) == str(user_ans_id)
             
             if is_correct:
                 score += 1
@@ -78,11 +83,13 @@ class TestViewSet(viewsets.ModelViewSet):
             })
             
         percentage = (score / total * 100) if total > 0 else 0
+        accuracy = (score / answered_count * 100) if answered_count > 0 else 0
         
         return Response(PublicEvaluationSerializer({
             'score': score,
             'total': total,
             'percentage': percentage,
+            'accuracy': accuracy,
             'review': review_data
         }).data)
 

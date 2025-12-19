@@ -22,4 +22,5 @@ class PublicEvaluationSerializer(serializers.Serializer):
     score = serializers.IntegerField()
     total = serializers.IntegerField()
     percentage = serializers.FloatField()
+    accuracy = serializers.FloatField()
     review = serializers.ListField(child=serializers.DictField())
