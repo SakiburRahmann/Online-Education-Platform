@@ -11,3 +11,15 @@ class TestSessionSerializer(serializers.ModelSerializer):
         model = TestSession
         fields = ['id', 'test', 'user', 'started_at', 'submitted_at', 'status', 'score', 'percentage', 'passed', 'answers']
         read_only_fields = ['user', 'started_at', 'submitted_at', 'score', 'percentage', 'passed', 'status']
+
+class PublicQuestionSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    question_text = serializers.CharField()
+    options = serializers.JSONField()
+    order = serializers.IntegerField()
+
+class PublicEvaluationSerializer(serializers.Serializer):
+    score = serializers.IntegerField()
+    total = serializers.IntegerField()
+    percentage = serializers.FloatField()
+    review = serializers.ListField(child=serializers.DictField())

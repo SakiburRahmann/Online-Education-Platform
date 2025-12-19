@@ -31,6 +31,61 @@ class TestViewSet(viewsets.ModelViewSet):
         )
         return Response(TestSessionSerializer(session).data, status=status.HTTP_201_CREATED)
 
+    @action(detail=True, methods=['get'], permission_classes=[permissions.AllowAny])
+    def public_questions(self, request, pk=None):
+        """Get questions for a public sample test (Set 1)."""
+        test = self.get_object()
+        # For public access, we might restrict this only to specific tests (e.g., Set 1)
+        # But for now, we allow any test to be taken publicly if the ID is known. 
+        # Ideally, check test.is_free_sample or similar.
+        
+        from apps.questions.models import Question
+        from .serializers import PublicQuestionSerializer
+        
+        questions = Question.objects.filter(test=test).order_by('order')
+        return Response(PublicQuestionSerializer(questions, many=True).data)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.AllowAny])
+    def public_evaluate(self, request, pk=None):
+        """Evaluate answers for a public sample test."""
+        test = self.get_object()
+        user_answers = request.data.get('answers', {})
+        
+        from apps.questions.models import Question
+        from .serializers import PublicEvaluationSerializer
+        
+        questions = Question.objects.filter(test=test).order_by('order')
+        
+        score = 0
+        total = questions.count()
+        review_data = []
+        
+        for q in questions:
+            user_ans_id = user_answers.get(str(q.id))
+            is_correct = str(q.correct_answer) == str(user_ans_id) if user_ans_id else False
+            
+            if is_correct:
+                score += 1
+                
+            review_data.append({
+                'id': str(q.id),
+                'question_text': q.question_text,
+                'options': q.options,
+                'correct_answer': q.correct_answer,
+                'user_answer': user_ans_id,
+                'explanation': q.explanation,
+                'is_correct': is_correct
+            })
+            
+        percentage = (score / total * 100) if total > 0 else 0
+        
+        return Response(PublicEvaluationSerializer({
+            'score': score,
+            'total': total,
+            'percentage': percentage,
+            'review': review_data
+        }).data)
+
 class TestSessionViewSet(viewsets.ModelViewSet):
     queryset = TestSession.objects.all()
     serializer_class = TestSessionSerializer
