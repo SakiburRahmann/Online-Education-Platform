@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Loader2, ArrowLeft, Save, Brain } from "lucide-react";
 import api from '@/lib/api';
 import { toast } from 'sonner';
@@ -100,8 +101,9 @@ export default function EditTestPage({ params }: { params: Promise<{ id: string 
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Test Name</label>
+                            <Label htmlFor="test-name">Test Name</Label>
                             <Input
+                                id="test-name"
                                 name="name"
                                 value={formData.name}
                                 onChange={handleChange}
@@ -110,8 +112,9 @@ export default function EditTestPage({ params }: { params: Promise<{ id: string 
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Description</label>
+                            <Label htmlFor="description">Description</Label>
                             <Textarea
+                                id="description"
                                 name="description"
                                 value={formData.description}
                                 onChange={handleChange}
@@ -121,8 +124,9 @@ export default function EditTestPage({ params }: { params: Promise<{ id: string 
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">Duration (Minutes)</label>
+                                <Label htmlFor="duration">Duration (Minutes)</Label>
                                 <Input
+                                    id="duration"
                                     type="number"
                                     name="duration_minutes"
                                     value={formData.duration_minutes}
@@ -131,8 +135,9 @@ export default function EditTestPage({ params }: { params: Promise<{ id: string 
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">Total Questions</label>
+                                <Label htmlFor="total-questions">Total Questions</Label>
                                 <Input
+                                    id="total-questions"
                                     type="number"
                                     name="total_questions"
                                     value={formData.total_questions}
@@ -143,8 +148,9 @@ export default function EditTestPage({ params }: { params: Promise<{ id: string 
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">Price (৳)</label>
+                                <Label htmlFor="price">Price (৳)</Label>
                                 <Input
+                                    id="price"
                                     type="text"
                                     name="price"
                                     value={formData.price}
@@ -154,8 +160,9 @@ export default function EditTestPage({ params }: { params: Promise<{ id: string 
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">Passing Score (%)</label>
+                                <Label htmlFor="passing-score">Passing Score (%)</Label>
                                 <Input
+                                    id="passing-score"
                                     type="number"
                                     name="passing_score"
                                     value={formData.passing_score}
