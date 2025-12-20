@@ -164,20 +164,22 @@ class PerformanceAnalytics(models.Model):
     
     def update_from_result(self, result):
         """Update analytics based on a new result."""
+        from decimal import Decimal
+        
         self.total_tests_taken += 1
         if result.passed:
             self.total_tests_passed += 1
         
-        # Update average score
+        # Update average score - convert to Decimal for consistent math
         if self.total_tests_taken == 1:
             self.average_score = result.score_percentage
             self.average_accuracy = result.accuracy
         else:
-            # Weighted average calculation
-            total_score = (self.average_score * (self.total_tests_taken - 1)) + result.score_percentage
+            # Weighted average calculation with Decimal type
+            total_score = (Decimal(str(self.average_score)) * (self.total_tests_taken - 1)) + Decimal(str(result.score_percentage))
             self.average_score = total_score / self.total_tests_taken
             
-            total_accuracy = (self.average_accuracy * (self.total_tests_taken - 1)) + result.accuracy
+            total_accuracy = (Decimal(str(self.average_accuracy)) * (self.total_tests_taken - 1)) + Decimal(str(result.accuracy))
             self.average_accuracy = total_accuracy / self.total_tests_taken
         
         # Update highest/lowest scores
@@ -192,11 +194,12 @@ class PerformanceAnalytics(models.Model):
         self.average_time_taken = self.total_time_spent // self.total_tests_taken
         
         # Update questions answered statistics
+        from decimal import Decimal
         questions_answered = result.correct_answers + result.wrong_answers
         if self.total_tests_taken == 1:
-            self.average_questions_answered = questions_answered
+            self.average_questions_answered = Decimal(str(questions_answered))
         else:
-            total_answered = (self.average_questions_answered * (self.total_tests_taken - 1)) + questions_answered
+            total_answered = (Decimal(str(self.average_questions_answered)) * (self.total_tests_taken - 1)) + Decimal(str(questions_answered))
             self.average_questions_answered = total_answered / self.total_tests_taken
         
         self.save()

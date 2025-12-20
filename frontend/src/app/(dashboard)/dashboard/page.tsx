@@ -37,14 +37,11 @@ export default function DashboardPage() {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
+                // Fetch analytics - now returns single object, not array
                 const analyticsRes = await api.get('/results/analytics/');
-                const analyticsData = analyticsRes.data.results || analyticsRes.data;
-                if (Array.isArray(analyticsData) && analyticsData.length > 0) {
-                    setAnalytics(analyticsData[0]);
-                } else if (!Array.isArray(analyticsData)) {
-                    setAnalytics(analyticsData);
-                }
+                setAnalytics(analyticsRes.data);
 
+                // Fetch recent results
                 const activitiesRes = await api.get('/results/results/');
                 const activitiesData = activitiesRes.data.results || activitiesRes.data;
                 setActivities(Array.isArray(activitiesData) ? activitiesData : []);
