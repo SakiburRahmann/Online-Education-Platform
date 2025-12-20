@@ -43,4 +43,9 @@ class ResultDetailSerializer(ResultSerializer):
 class PerformanceAnalyticsSerializer(serializers.ModelSerializer):
     class Meta:
         model = PerformanceAnalytics
-        fields = '__all__'
+        fields = [
+            'id', 'total_tests_taken', 'total_tests_passed',
+            'average_score', 'average_accuracy', 'highest_score', 'lowest_score',
+            'average_time_taken', 'total_time_spent', 'average_questions_answered',
+            'updated_at'
+        ]

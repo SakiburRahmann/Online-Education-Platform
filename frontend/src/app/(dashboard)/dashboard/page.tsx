@@ -15,6 +15,8 @@ interface Analytics {
     average_accuracy: string;
     highest_score: string;
     average_time_taken: number;
+    total_time_spent: number;
+    average_questions_answered: string;
 }
 
 interface Activity {
@@ -71,7 +73,7 @@ export default function DashboardPage() {
                 <p className="text-gray-600 mt-2">Here's an overview of your progress and upcoming tests.</p>
             </div>
 
-            {/* Stats Grid */}
+            {/* Stats Grid - Now 7 metrics in responsive layout */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <Card>
                     <CardContent className="p-6 flex items-center gap-4">
@@ -129,6 +131,30 @@ export default function DashboardPage() {
                         <div>
                             <p className="text-sm font-medium text-gray-500">Avg Time</p>
                             <h3 className="text-2xl font-bold text-gray-900">{Math.round((analytics?.average_time_taken || 0) / 60)}m</h3>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardContent className="p-6 flex items-center gap-4">
+                        <div className="p-4 bg-teal-100 rounded-full">
+                            <Clock className="h-6 w-6 text-teal-600" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-gray-500">Total Time Spent</p>
+                            <h3 className="text-2xl font-bold text-gray-900">{Math.round((analytics?.total_time_spent || 0) / 3600)}h</h3>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardContent className="p-6 flex items-center gap-4">
+                        <div className="p-4 bg-pink-100 rounded-full">
+                            <CheckCircle className="h-6 w-6 text-pink-600" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-gray-500">Avg Questions Answered</p>
+                            <h3 className="text-2xl font-bold text-gray-900">{Math.round(parseFloat(analytics?.average_questions_answered || '0'))}</h3>
                         </div>
                     </CardContent>
                 </Card>

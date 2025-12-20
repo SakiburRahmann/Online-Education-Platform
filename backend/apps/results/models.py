@@ -134,6 +134,14 @@ class PerformanceAnalytics(models.Model):
     average_time_taken = models.IntegerField(default=0, help_text="Average time in seconds")
     total_time_spent = models.IntegerField(default=0, help_text="Total time in seconds")
     
+    # Answer statistics
+    average_questions_answered = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        default=0,
+        help_text="Average number of questions answered per test"
+    )
+    
     # Difficulty breakdown
     easy_correct = models.IntegerField(default=0)
     easy_total = models.IntegerField(default=0)
@@ -182,5 +190,68 @@ class PerformanceAnalytics(models.Model):
         # Update time statistics
         self.total_time_spent += result.time_taken_seconds
         self.average_time_taken = self.total_time_spent // self.total_tests_taken
+        
+        # Update questions answered statistics
+        questions_answered = result.correct_answers + result.wrong_answers
+        if self.total_tests_taken == 1:
+            self.average_questions_answered = questions_answered
+        else:
+            total_answered = (self.average_questions_answered * (self.total_tests_taken - 1)) + questions_answered
+            self.average_questions_answered = total_answered / self.total_tests_taken
+        
+        self.save()
+    
+    def recalculate_from_results(self):
+        """Recalculate all analytics from existing results."""
+        results = Result.objects.filter(user=self.user).order_by('created_at')
+        
+        if not results.exists():
+            # Reset to defaults if no results
+            self.total_tests_taken = 0
+            self.total_tests_passed = 0
+            self.average_score = 0
+            self.average_accuracy = 0
+            self.highest_score = 0
+            self.lowest_score = None
+            self.average_time_taken = 0
+            self.total_time_spent = 0
+            self.average_questions_answered = 0
+            self.save()
+            return
+        
+        # Reset counters
+        self.total_tests_taken = 0
+        self.total_tests_passed = 0
+        total_score = 0
+        total_accuracy = 0
+        self.highest_score = 0
+        self.lowest_score = None
+        self.total_time_spent = 0
+        total_questions_answered = 0
+        
+        # Iterate through all results
+        for result in results:
+            self.total_tests_taken += 1
+            if result.passed:
+                self.total_tests_passed += 1
+            
+            total_score += float(result.score_percentage)
+            total_accuracy += float(result.accuracy)
+            
+            if result.score_percentage > self.highest_score:
+                self.highest_score = result.score_percentage
+            
+            if self.lowest_score is None or result.score_percentage < self.lowest_score:
+                self.lowest_score = result.score_percentage
+            
+            self.total_time_spent += result.time_taken_seconds
+            total_questions_answered += (result.correct_answers + result.wrong_answers)
+        
+        # Calculate averages
+        if self.total_tests_taken > 0:
+            self.average_score = total_score / self.total_tests_taken
+            self.average_accuracy = total_accuracy / self.total_tests_taken
+            self.average_time_taken = self.total_time_spent // self.total_tests_taken
+            self.average_questions_answered = total_questions_answered / self.total_tests_taken
         
         self.save()
