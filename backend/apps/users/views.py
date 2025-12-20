@@ -33,36 +33,35 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
     
     def post(self, request, *args, **kwargs):
-        # Get device fingerprint from request
-        device_fingerprint = request.data.get('device_fingerprint', '')
-        
-        # Get user (before authentication)
-        username = request.data.get('username', '')
-        
+        # Proceed with normal login first to verify credentials
         try:
-            user = User.objects.get(username=username)
-            
-            # Check if user can login from this device
-            if not user.can_login_from_device(device_fingerprint):
-                return Response({
-                    'error': 'This ID is already logged in on another device. You cannot login using a different device with the same ID.'
-                }, status=status.HTTP_403_FORBIDDEN)
+            response = super().post(request, *args, **kwargs)
+        except Exception as e:
+            # Re-raise or handle as DRF normally would
+            raise e
         
-        except User.DoesNotExist:
-            # Let the parent class handle invalid credentials
-            pass
-        
-        # Proceed with normal login
-        response = super().post(request, *args, **kwargs)
-        
-        # If login successful, update device info
         if response.status_code == 200:
+            # Login successful, now check device fingerprint
+            username = request.data.get('username', '')
+            device_fingerprint = request.data.get('device_fingerprint', '')
+            
             try:
                 user = User.objects.get(username=username)
+                
+                # Check if user can login from this device
+                if not user.can_login_from_device(device_fingerprint):
+                    return Response({
+                        'error': 'This ID is already logged in on another device. You cannot login using a different device with the same ID.'
+                    }, status=status.HTTP_403_FORBIDDEN)
+                
+                # Update device info
                 ip_address = get_client_ip(request)
                 user.update_device_info(device_fingerprint, ip_address)
+                
+            except User.DoesNotExist:
+                # Should not happen as super().post() was successful
+                pass
             except Exception as e:
-                # Log error but don't fail the login
                 print(f"Error updating device info: {e}")
         
         return response
@@ -80,6 +79,11 @@ class LogoutView(viewsets.ViewSet):
             refresh_token = request.data.get('refresh_token')
             token = RefreshToken(refresh_token)
             token.blacklist()
+            
+            # Clear device fingerprint on logout
+            user = request.user
+            user.device_fingerprint = None
+            user.save(update_fields=['device_fingerprint'])
             
             return Response({'detail': 'Successfully logged out.'}, status=status.HTTP_200_OK)
         except Exception as e:

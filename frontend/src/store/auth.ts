@@ -29,10 +29,20 @@ export const useAuthStore = create<AuthState>()(
                 localStorage.setItem('refreshToken', refreshToken);
                 set({ user, accessToken, isAuthenticated: true });
             },
-            logout: () => {
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-                set({ user: null, accessToken: null, isAuthenticated: false });
+            logout: async () => {
+                try {
+                    const refreshToken = localStorage.getItem('refreshToken');
+                    if (refreshToken) {
+                        const api = (await import('@/lib/api')).default;
+                        await api.post('/auth/logout/', { refresh_token: refreshToken });
+                    }
+                } catch (error) {
+                    console.error('Logout API call failed:', error);
+                } finally {
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    set({ user: null, accessToken: null, isAuthenticated: false });
+                }
             },
             updateUser: (userData) => {
                 set((state) => ({
