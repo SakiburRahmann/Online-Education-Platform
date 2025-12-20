@@ -58,9 +58,16 @@ api.interceptors.response.use(
                 return api(originalRequest);
             } catch (refreshError) {
                 // If refresh fails, logout user
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-                window.location.href = '/login';
+                if (typeof window !== 'undefined') {
+                    // Import dynamically to avoid circular dependencies if any
+                    const { useAuthStore } = await import('@/store/auth');
+                    // We don't call .logout() because that tries to hit the API again
+                    // Instead we just clear the local state
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    useAuthStore.setState({ user: null, accessToken: null, isAuthenticated: false });
+                    window.location.href = '/login';
+                }
                 return Promise.reject(refreshError);
             }
         }
