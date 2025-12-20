@@ -31,6 +31,19 @@ class TestViewSet(viewsets.ModelViewSet):
         )
         return Response(TestSessionSerializer(session).data, status=status.HTTP_201_CREATED)
 
+    @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
+    def get_sample_test(self, request):
+        """Get the current active free sample test."""
+        test = Test.objects.filter(is_free_sample=True, is_active=True).first()
+        if not test:
+            # Fallback to Set 1 if no is_free_sample flag is found
+            test = Test.objects.filter(name__icontains="Set 1").first()
+        
+        if not test:
+            return Response({"error": "No sample test found"}, status=status.HTTP_404_NOT_FOUND)
+            
+        return Response(TestSerializer(test).data)
+
     @action(detail=True, methods=['get'], permission_classes=[permissions.AllowAny])
     def public_questions(self, request, pk=None):
         """Get questions for a public sample test (Set 1)."""

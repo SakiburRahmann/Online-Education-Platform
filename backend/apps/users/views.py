@@ -177,7 +177,7 @@ class AdminDashboardViewSet(viewsets.ViewSet):
         total_students = User.objects.filter(role='student').count()
         total_tests = Test.objects.count()
         pending_payments = Payment.objects.filter(status='pending').count()
-        total_revenue = Payment.objects.filter(status='approved').aggregate(Sum('amount'))['amount__sum'] or 0
+        total_revenue = Payment.objects.filter(status='verified').aggregate(Sum('amount'))['amount__sum'] or 0
 
         # Registration Stats (Last 7 days)
         last_7_days = timezone.now() - timedelta(days=7)

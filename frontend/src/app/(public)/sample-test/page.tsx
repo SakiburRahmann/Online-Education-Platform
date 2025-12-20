@@ -7,7 +7,6 @@ import { Clock, AlertCircle, Loader2, CheckCircle, XCircle, BarChart2 } from "lu
 import Link from 'next/link';
 import api from '@/lib/api';
 
-const SET_1_ID = 'f6849b32-bf20-49ce-b0ba-6693da0ebee0';
 
 interface Question {
     id: string;
@@ -42,11 +41,17 @@ export default function SampleTestPage() {
     const [answers, setAnswers] = useState<Record<string, string>>({});
     const [result, setResult] = useState<EvaluationResult | null>(null);
     const [timeLeft, setTimeLeft] = useState(30 * 60);
+    const [testId, setTestId] = useState<string | null>(null);
 
     const startTest = async () => {
         setLoading(true);
         try {
-            const res = await api.get(`/tests/tests/${SET_1_ID}/public_questions/`);
+            // First, get the current sample test ID dynamically
+            const sampleTestRes = await api.get('/tests/tests/get_sample_test/');
+            const id = sampleTestRes.data.id;
+            setTestId(id);
+
+            const res = await api.get(`/tests/tests/${id}/public_questions/`);
             setQuestions(res.data);
             setStarted(true);
             setLoading(false);
@@ -87,9 +92,10 @@ export default function SampleTestPage() {
     };
 
     const handleSubmit = async () => {
+        if (!testId) return;
         setLoading(true);
         try {
-            const res = await api.post(`/tests/tests/${SET_1_ID}/public_evaluate/`, { answers });
+            const res = await api.post(`/tests/tests/${testId}/public_evaluate/`, { answers });
             setResult(res.data);
             setLoading(false);
         } catch (err) {
