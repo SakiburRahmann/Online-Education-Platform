@@ -17,6 +17,7 @@ export default function Navbar() {
     const publicLinks = [
         { href: '/', label: 'Home' },
         { href: '/about', label: 'About' },
+        { href: '/leadership', label: 'Leadership' },
         { href: '/contact', label: 'Contact' },
         { href: '/sample-test', label: 'Free Sample Test' },
     ];
