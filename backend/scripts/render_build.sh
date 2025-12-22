@@ -12,3 +12,6 @@ pip install -r requirements.txt
 
 python manage.py collectstatic --no-input
 python manage.py migrate
+
+# Update free sample test
+python render_seed_all.py

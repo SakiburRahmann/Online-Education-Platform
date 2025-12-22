@@ -64,11 +64,17 @@ def seed_all():
             'duration_minutes': 30,
             'total_questions': 100,
             'price': 0.00,
-            'is_free_sample': False,
+            'is_free_sample': True,
             'is_active': True,
             'created_by': admin_user
         }
     )
+    
+    # Ensure it is set to free sample even if it already exists
+    if not test.is_free_sample:
+        test.is_free_sample = True
+        test.save()
+        print(f"Updated '{test_name}' to be a free sample.")
     
     if test.questions.count() < 100:
         print(f"Populating questions for '{test_name}'...")
@@ -87,10 +93,16 @@ def seed_all():
             "duration_minutes": 30,
             "total_questions": 5,
             "price": 0.00,
-            "is_free_sample": True,
+            "is_free_sample": False,
             "created_by": admin_user
         }
     )
+    
+    # Ensure it is NOT a free sample anymore
+    if sample_test.is_free_sample:
+        sample_test.is_free_sample = False
+        sample_test.save()
+        print(f"Updated '{sample_test_name}' to NOT be a free sample.")
     
     if sample_test.questions.count() == 0:
         print(f"Populating questions for '{sample_test_name}'...")
