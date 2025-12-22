@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 # exit on error
+# exit on error
 set -o errexit
 
-cd backend
+# Only cd into backend if we are not already there
+if [ -d "backend" ]; then
+  cd backend
+fi
 
 pip install -r requirements.txt
 
