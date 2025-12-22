@@ -12,6 +12,3 @@ pip install -r requirements.txt
 
 python manage.py collectstatic --no-input
 python manage.py migrate
-
-# Temporarily seed data during build
-python render_seed_all.py
