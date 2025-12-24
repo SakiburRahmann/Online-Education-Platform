@@ -81,7 +81,9 @@ export default function SampleTestPage() {
             if (slowLoadId) toast.dismiss(slowLoadId);
             console.error("Failed to load sample test:", err);
             setLoading(false);
-            toast.error("Failed to load test. Your internet might be weak or our server is starting up. Please try again in 30 seconds.");
+            toast.error("Failed to load test. Your internet might be weak or our server is starting up. Please try again in 30 seconds.", {
+                duration: Infinity
+            });
         }
     };
 

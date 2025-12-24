@@ -109,7 +109,7 @@ export default function LoginPage() {
 
             toast.error(message, {
                 description,
-                duration: 6000 // Error toasts stay a bit longer
+                duration: Infinity // Error toasts stay until closed by user
             })
         } finally {
             setIsLoading(false)
