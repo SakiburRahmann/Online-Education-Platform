@@ -82,10 +82,11 @@ export default function TestRunnerPage({ params }: { params: Promise<{ id: strin
     }, [id]);
 
     const handleSubmit = async (auto = false, currentAnswers: Record<string, string> = answers) => {
-        if (submitting || isSubmitted) return;
+        if (submitting || isSubmitted || submissionInProgress.current) return;
 
         if (!auto && !confirm("Are you sure you want to submit?")) return;
 
+        submissionInProgress.current = true;
         setSubmitting(true);
         try {
             await api.post(`/tests/test-sessions/${sessionId}/submit/`, { answers: currentAnswers });
@@ -96,25 +97,27 @@ export default function TestRunnerPage({ params }: { params: Promise<{ id: strin
             console.error("Submit failed", err);
             alert("Failed to submit test. Please try again.");
             setSubmitting(false);
+            submissionInProgress.current = false;
         }
     };
 
-    // Timer logic
-    const handleTimeout = () => {
-        handleSubmit(true, answersRef.current);
-    };
+    // Use a ref to prevent double submission
+    const submissionInProgress = useRef(false);
 
     useEffect(() => {
         if (!loading && timeLeft > 0 && !isSubmitted) {
             const timer = setInterval(() => {
-                setTimeLeft((prev) => prev - 1);
+                setTimeLeft((prev) => Math.max(0, prev - 1));
             }, 1000);
             return () => clearInterval(timer);
-        } else if (timeLeft === 0 && !loading && !isSubmitted) {
-            const t = setTimeout(() => handleTimeout(), 0);
-            return () => clearTimeout(t);
         }
     }, [timeLeft, loading, isSubmitted]);
+
+    useEffect(() => {
+        if (!loading && timeLeft === 0 && !isSubmitted && !submissionInProgress.current) {
+            handleSubmit(true, answers);
+        }
+    }, [timeLeft, loading, isSubmitted, answers]);
 
 
     const handleOptionSelect = async (optionId: string) => {

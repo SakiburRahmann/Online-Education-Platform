@@ -165,28 +165,24 @@ export default function SampleTestPage() {
         });
     };
 
-    // Use a ref to always have access to the latest answers in the timer closure
-    const answersRef = useRef(answers);
-    useEffect(() => {
-        answersRef.current = answers;
-    }, [answers]);
+    // Use a ref to prevent double submission
+    const submissionInProgress = useRef(false);
 
     useEffect(() => {
-        if (!started || !questions.length || result) return;
+        if (!started || !questions.length || result || timeLeft <= 0 || loading) return;
 
         const timer = setInterval(() => {
-            setTimeLeft((prev) => {
-                if (prev <= 1) {
-                    clearInterval(timer);
-                    handleSubmit(answersRef.current);
-                    return 0;
-                }
-                return prev - 1;
-            });
+            setTimeLeft((prev) => Math.max(0, prev - 1));
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [started, questions, result]);
+    }, [started, questions.length, result, timeLeft, loading]);
+
+    useEffect(() => {
+        if (started && timeLeft === 0 && !result && !loading && !submissionInProgress.current) {
+            handleSubmit(answers);
+        }
+    }, [timeLeft, started, result, loading, answers]);
 
     const handleNext = () => {
         if (currentQ < questions.length - 1) {
@@ -197,8 +193,11 @@ export default function SampleTestPage() {
     };
 
     const handleSubmit = async (currentAnswers: Record<string, string> = answers) => {
-        if (!testId) return;
+        if (!testId || submissionInProgress.current) return;
+
+        submissionInProgress.current = true;
         setLoading(true);
+
         try {
             const res = await api.post(`/tests/tests/${testId}/public_evaluate/`, { answers: currentAnswers });
             setResult(res.data);
@@ -207,12 +206,13 @@ export default function SampleTestPage() {
         } catch (err) {
             console.error("Failed to submit test:", err);
             setLoading(false);
+            submissionInProgress.current = false;
             alert("Failed to submit test. Please try again.");
         }
     };
 
     const formatTime = (seconds: number) => {
-        if (seconds < 0) return "00:00";
+        if (seconds <= 0) return "00:00";
         const m = Math.floor(seconds / 60);
         const s = seconds % 60;
         return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
