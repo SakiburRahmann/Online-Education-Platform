@@ -1,6 +1,5 @@
 'use client';
-
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Clock, AlertCircle, Loader2, CheckCircle, XCircle, BarChart2 } from "lucide-react";
@@ -87,6 +86,12 @@ export default function SampleTestPage() {
         }
     };
 
+    // Use a ref to always have access to the latest answers in the timer closure
+    const answersRef = React.useRef(answers);
+    useEffect(() => {
+        answersRef.current = answers;
+    }, [answers]);
+
     useEffect(() => {
         if (!started || !questions.length || result) return;
 
@@ -94,7 +99,7 @@ export default function SampleTestPage() {
             setTimeLeft((prev) => {
                 if (prev <= 1) {
                     clearInterval(timer);
-                    handleSubmit();
+                    handleSubmit(answersRef.current);
                     return 0;
                 }
                 return prev - 1;
@@ -112,15 +117,15 @@ export default function SampleTestPage() {
         if (currentQ < questions.length - 1) {
             setCurrentQ(currentQ + 1);
         } else {
-            handleSubmit();
+            handleSubmit(answers);
         }
     };
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (currentAnswers: Record<string, string> = answers) => {
         if (!testId) return;
         setLoading(true);
         try {
-            const res = await api.post(`/tests/tests/${testId}/public_evaluate/`, { answers });
+            const res = await api.post(`/tests/tests/${testId}/public_evaluate/`, { answers: currentAnswers });
             setResult(res.data);
             setLoading(false);
         } catch (err) {

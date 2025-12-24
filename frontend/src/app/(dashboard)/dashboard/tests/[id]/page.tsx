@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,22 +37,24 @@ export default function TestRunnerPage({ params }: { params: Promise<{ id: strin
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Use a ref to always have access to the latest answers in the timer closure
+    const answersRef = useRef(answers);
+    useEffect(() => {
+        answersRef.current = answers;
+    }, [answers]);
+
     // Fetch Test Data
     useEffect(() => {
         const fetchTestData = async () => {
             try {
-                // 1. Fetch Test Details
-                // Standardized backend uses 'name'
                 const testRes = await api.get(`/tests/tests/${id}/`);
                 setTest(testRes.data);
                 setTimeLeft(testRes.data.duration_minutes * 60);
 
-                // 2. Fetch Questions
                 const questionsRes = await api.get(`/questions/?test_id=${id}`);
                 const questionsData = questionsRes.data.results || questionsRes.data;
                 setQuestions(Array.isArray(questionsData) ? questionsData : []);
 
-                // 3. Start Session
                 const sessionRes = await api.post(`/tests/tests/${id}/start_session/`);
                 setSessionId(sessionRes.data.id);
 
@@ -69,15 +71,14 @@ export default function TestRunnerPage({ params }: { params: Promise<{ id: strin
         }
     }, [id]);
 
-    const handleSubmit = async (auto = false) => {
+    const handleSubmit = async (auto = false, currentAnswers: Record<string, string> = answers) => {
         if (submitting || isSubmitted) return;
 
         if (!auto && !confirm("Are you sure you want to submit?")) return;
 
         setSubmitting(true);
         try {
-            // Finalize submmission
-            await api.post(`/tests/test-sessions/${sessionId}/submit/`, { answers });
+            await api.post(`/tests/test-sessions/${sessionId}/submit/`, { answers: currentAnswers });
 
             setIsSubmitted(true);
             router.push(`/dashboard/results/${sessionId}`);
@@ -90,7 +91,7 @@ export default function TestRunnerPage({ params }: { params: Promise<{ id: strin
 
     // Timer logic
     const handleTimeout = () => {
-        handleSubmit(true);
+        handleSubmit(true, answersRef.current);
     };
 
     useEffect(() => {
