@@ -49,14 +49,24 @@ export default function TestRunnerPage({ params }: { params: Promise<{ id: strin
             try {
                 const testRes = await api.get(`/tests/tests/${id}/`);
                 setTest(testRes.data);
-                setTimeLeft(testRes.data.duration_minutes * 60);
 
                 const questionsRes = await api.get(`/questions/?test_id=${id}`);
                 const questionsData = questionsRes.data.results || questionsRes.data;
                 setQuestions(Array.isArray(questionsData) ? questionsData : []);
 
                 const sessionRes = await api.post(`/tests/tests/${id}/start_session/`);
-                setSessionId(sessionRes.data.id);
+                const session = sessionRes.data;
+                setSessionId(session.id);
+
+                // Resume logic
+                if (session.answers) {
+                    setAnswers(session.answers);
+                }
+
+                const startTime = new Date(session.started_at).getTime();
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const remaining = session.time_limit_seconds - elapsed;
+                setTimeLeft(Math.max(0, remaining));
 
                 setLoading(false);
             } catch (err: any) {
@@ -107,12 +117,20 @@ export default function TestRunnerPage({ params }: { params: Promise<{ id: strin
     }, [timeLeft, loading, isSubmitted]);
 
 
-    const handleOptionSelect = (optionId: string) => {
+    const handleOptionSelect = async (optionId: string) => {
         if (!questions[currentQuestionIndex]) return;
-        setAnswers({
+        const newAnswers = {
             ...answers,
             [questions[currentQuestionIndex].id]: optionId
-        });
+        };
+        setAnswers(newAnswers);
+
+        // Sync to backend (Fire and forget, but log errors)
+        try {
+            await api.patch(`/tests/test-sessions/${sessionId}/`, { answers: newAnswers });
+        } catch (err) {
+            console.error("Failed to sync answers to server", err);
+        }
     };
 
     const handleNext = () => {

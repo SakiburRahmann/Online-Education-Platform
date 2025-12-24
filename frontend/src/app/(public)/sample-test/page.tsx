@@ -5,8 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Clock, AlertCircle, Loader2, CheckCircle, XCircle, BarChart2 } from "lucide-react";
 import Link from 'next/link';
 import api from '@/lib/api';
-
-
 import { toast } from 'sonner';
 
 interface Question {
@@ -34,6 +32,8 @@ interface EvaluationResult {
     review: ReviewItem[];
 }
 
+const LOCAL_STORAGE_KEY = 'defense_sample_test_state';
+
 export default function SampleTestPage() {
     const [started, setStarted] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -45,9 +45,68 @@ export default function SampleTestPage() {
     const [testId, setTestId] = useState<string | null>(null);
     const [slowLoadId, setSlowLoadId] = useState<string | number | null>(null);
 
+    // 1. Fetch sample test ID on mount
+    useEffect(() => {
+        const fetchId = async () => {
+            try {
+                const res = await api.get('/tests/tests/get_sample_test/');
+                setTestId(res.data.id);
+            } catch (err) {
+                console.error("Failed to fetch sample test ID", err);
+            }
+        };
+        fetchId();
+    }, []);
+
+    // 2. Check for active session in localStorage once testId is available
+    useEffect(() => {
+        if (!testId || started || result) return;
+
+        const savedState = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (savedState) {
+            try {
+                const { startTime, savedAnswers, savedTestId } = JSON.parse(savedState);
+                if (savedTestId === testId) {
+                    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                    const durationSeconds = 30 * 60;
+
+                    if (elapsed < durationSeconds) {
+                        const resumeTest = async () => {
+                            setLoading(true);
+                            try {
+                                const res = await api.get(`/tests/tests/${testId}/public_questions/`);
+                                setQuestions(res.data);
+                                setAnswers(savedAnswers);
+                                setTimeLeft(durationSeconds - elapsed);
+                                setStarted(true);
+                                setLoading(false);
+                                toast.info("Welcome back!", {
+                                    description: "Continuing your practice session.",
+                                });
+                            } catch (err) {
+                                console.error("Failed to resume test questions", err);
+                                setLoading(false);
+                            }
+                        };
+                        resumeTest();
+                    } else {
+                        localStorage.removeItem(LOCAL_STORAGE_KEY);
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to parse saved state", e);
+            }
+        }
+    }, [testId, started, result]);
+
     const startTest = async () => {
         if (!navigator.onLine) {
             toast.error('No internet connection. Please check your network.');
+            return;
+        }
+
+        if (!testId) {
+            toast.error('Test ID is not ready. Please try again in 5 seconds.');
             return;
         }
 
@@ -61,12 +120,7 @@ export default function SampleTestPage() {
         }, 5000);
 
         try {
-            // First, get the current sample test ID dynamically
-            const sampleTestRes = await api.get('/tests/tests/get_sample_test/');
-            const id = sampleTestRes.data.id;
-            setTestId(id);
-
-            const res = await api.get(`/tests/tests/${id}/public_questions/`);
+            const res = await api.get(`/tests/tests/${testId}/public_questions/`);
 
             clearTimeout(timer);
             if (slowLoadId) toast.dismiss(slowLoadId);
@@ -74,20 +128,45 @@ export default function SampleTestPage() {
             setQuestions(res.data);
             setStarted(true);
             setLoading(false);
-            toast.success('Test loaded successfully!');
+            setAnswers({});
+            setResult(null);
+            setCurrentQ(0);
+            setTimeLeft(30 * 60);
+
+            // Save initial state to localStorage
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({
+                startTime: Date.now(),
+                savedAnswers: {},
+                savedTestId: testId
+            }));
+
+            toast.success('Test started successfully!');
         } catch (err) {
             clearTimeout(timer);
             if (slowLoadId) toast.dismiss(slowLoadId);
             console.error("Failed to load sample test:", err);
             setLoading(false);
-            toast.error("Failed to load test. Your internet might be weak or our server is starting up. Please try again in 30 seconds.", {
-                duration: 8000
-            });
+            toast.error("Failed to load test. Please try again.");
         }
     };
 
+    const handleAnswer = (optionId: string) => {
+        setAnswers(prev => {
+            const newAnswers = { ...prev, [questions[currentQ].id]: optionId };
+            const savedState = localStorage.getItem(LOCAL_STORAGE_KEY);
+            if (savedState) {
+                const parsed = JSON.parse(savedState);
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({
+                    ...parsed,
+                    savedAnswers: newAnswers
+                }));
+            }
+            return newAnswers;
+        });
+    };
+
     // Use a ref to always have access to the latest answers in the timer closure
-    const answersRef = React.useRef(answers);
+    const answersRef = useRef(answers);
     useEffect(() => {
         answersRef.current = answers;
     }, [answers]);
@@ -109,10 +188,6 @@ export default function SampleTestPage() {
         return () => clearInterval(timer);
     }, [started, questions, result]);
 
-    const handleAnswer = (optionId: string) => {
-        setAnswers(prev => ({ ...prev, [questions[currentQ].id]: optionId }));
-    };
-
     const handleNext = () => {
         if (currentQ < questions.length - 1) {
             setCurrentQ(currentQ + 1);
@@ -128,6 +203,7 @@ export default function SampleTestPage() {
             const res = await api.post(`/tests/tests/${testId}/public_evaluate/`, { answers: currentAnswers });
             setResult(res.data);
             setLoading(false);
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
         } catch (err) {
             console.error("Failed to submit test:", err);
             setLoading(false);
@@ -136,6 +212,7 @@ export default function SampleTestPage() {
     };
 
     const formatTime = (seconds: number) => {
+        if (seconds < 0) return "00:00";
         const m = Math.floor(seconds / 60);
         const s = seconds % 60;
         return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
@@ -170,6 +247,7 @@ export default function SampleTestPage() {
             </div>
         );
     }
+
     if (result) {
         return (
             <div className="max-w-4xl mx-auto py-12 px-4">
