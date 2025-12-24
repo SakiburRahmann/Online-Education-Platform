@@ -9,8 +9,8 @@ class TestSerializer(serializers.ModelSerializer):
 class TestSessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = TestSession
-        fields = ['id', 'test', 'user', 'started_at', 'submitted_at', 'status', 'score', 'percentage', 'passed', 'answers']
-        read_only_fields = ['user', 'started_at', 'submitted_at', 'score', 'percentage', 'passed', 'status']
+        fields = ['id', 'test', 'user', 'started_at', 'submitted_at', 'status', 'score', 'percentage', 'passed', 'answers', 'time_limit_seconds']
+        read_only_fields = ['user', 'started_at', 'submitted_at', 'score', 'percentage', 'passed', 'status', 'time_limit_seconds']
 
 class PublicQuestionSerializer(serializers.Serializer):
     id = serializers.UUIDField()

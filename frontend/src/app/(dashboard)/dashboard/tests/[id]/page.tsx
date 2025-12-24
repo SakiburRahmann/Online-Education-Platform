@@ -63,9 +63,10 @@ export default function TestRunnerPage({ params }: { params: Promise<{ id: strin
                     setAnswers(session.answers);
                 }
 
+                const sessionLimit = session.time_limit_seconds || (testRes.data.duration_minutes * 60) || 1800;
                 const startTime = new Date(session.started_at).getTime();
-                const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                const remaining = session.time_limit_seconds - elapsed;
+                const elapsed = isNaN(startTime) ? 0 : Math.floor((Date.now() - startTime) / 1000);
+                const remaining = sessionLimit - elapsed;
                 setTimeLeft(Math.max(0, remaining));
 
                 setLoading(false);
@@ -150,6 +151,7 @@ export default function TestRunnerPage({ params }: { params: Promise<{ id: strin
 
 
     const formatTime = (seconds: number) => {
+        if (isNaN(seconds) || seconds <= 0) return "00:00";
         const m = Math.floor(seconds / 60);
         const s = seconds % 60;
         return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
