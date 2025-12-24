@@ -12,13 +12,26 @@ import { toast } from 'sonner';
 export default function AdminDashboardPage() {
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<any>(null);
+    const [slowLoadId, setSlowLoadId] = useState<string | number | null>(null);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
+            const timer = setTimeout(() => {
+                const id = toast.info('Admin dashboard is loading...', {
+                    description: 'Our backend might be waking up from sleep. This will only take a moment.',
+                    duration: 10000,
+                });
+                setSlowLoadId(id);
+            }, 5000);
+
             try {
                 const res = await api.get('/auth/dashboard-stats/');
                 setData(res.data);
+                clearTimeout(timer);
+                if (slowLoadId) toast.dismiss(slowLoadId);
             } catch (err) {
+                clearTimeout(timer);
+                if (slowLoadId) toast.dismiss(slowLoadId);
                 console.error("Failed to fetch dashboard stats:", err);
                 toast.error("Failed to load dashboard statistics.");
             } finally {

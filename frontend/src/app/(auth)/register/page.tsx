@@ -58,9 +58,11 @@ export default function RegisterPage() {
                                 <p className="text-sm text-gray-600 mb-2">
                                     Send the screenshot/TrxID along with your <span className="font-semibold">Full Name</span> to our WhatsApp number:
                                 </p>
-                                <Button className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto h-12 text-lg">
-                                    <Smartphone className="w-5 h-5 mr-2" />
-                                    Chat on WhatsApp
+                                <Button asChild className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto h-12 text-lg cursor-pointer">
+                                    <a href="https://wa.me/8801700000000" target="_blank" rel="noopener noreferrer" className="flex items-center">
+                                        <Smartphone className="w-5 h-5 mr-2" />
+                                        Chat on WhatsApp
+                                    </a>
                                 </Button>
                             </div>
                         </div>

@@ -8,6 +8,8 @@ import Link from 'next/link';
 import api from '@/lib/api';
 
 
+import { toast } from 'sonner';
+
 interface Question {
     id: string;
     question_text: string;
@@ -42,9 +44,23 @@ export default function SampleTestPage() {
     const [result, setResult] = useState<EvaluationResult | null>(null);
     const [timeLeft, setTimeLeft] = useState(30 * 60);
     const [testId, setTestId] = useState<string | null>(null);
+    const [slowLoadId, setSlowLoadId] = useState<string | number | null>(null);
 
     const startTest = async () => {
+        if (!navigator.onLine) {
+            toast.error('No internet connection. Please check your network.');
+            return;
+        }
+
         setLoading(true);
+        const timer = setTimeout(() => {
+            const id = toast.info('Our server is waking up...', {
+                description: 'This is a free sample, but our backend still needs a moment to start. Thanks for your patience!',
+                duration: 10000,
+            });
+            setSlowLoadId(id);
+        }, 5000);
+
         try {
             // First, get the current sample test ID dynamically
             const sampleTestRes = await api.get('/tests/tests/get_sample_test/');
@@ -52,13 +68,20 @@ export default function SampleTestPage() {
             setTestId(id);
 
             const res = await api.get(`/tests/tests/${id}/public_questions/`);
+
+            clearTimeout(timer);
+            if (slowLoadId) toast.dismiss(slowLoadId);
+
             setQuestions(res.data);
             setStarted(true);
             setLoading(false);
+            toast.success('Test loaded successfully!');
         } catch (err) {
+            clearTimeout(timer);
+            if (slowLoadId) toast.dismiss(slowLoadId);
             console.error("Failed to load sample test:", err);
             setLoading(false);
-            alert("Failed to load test. Please try again later.");
+            toast.error("Failed to load test. Your internet might be weak or our server is starting up. Please try again in 30 seconds.");
         }
     };
 

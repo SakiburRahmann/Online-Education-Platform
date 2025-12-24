@@ -9,6 +9,8 @@ import Link from 'next/link';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import api from '@/lib/api';
 
+import { toast } from 'sonner';
+
 interface Analytics {
     total_tests_taken: number;
     average_score: string;
@@ -33,9 +35,18 @@ export default function DashboardPage() {
     const [analytics, setAnalytics] = useState<Analytics | null>(null);
     const [activities, setActivities] = useState<Activity[]>([]);
     const [loading, setLoading] = useState(true);
+    const [slowLoadId, setSlowLoadId] = useState<string | number | null>(null);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
+            const timer = setTimeout(() => {
+                const id = toast.info('Dashboard is loading...', {
+                    description: 'Our backend might be waking up from sleep. This will only take a moment.',
+                    duration: 10000,
+                });
+                setSlowLoadId(id);
+            }, 5000);
+
             try {
                 // Fetch analytics - now returns single object, not array
                 const analyticsRes = await api.get('/results/analytics/');
@@ -46,10 +57,15 @@ export default function DashboardPage() {
                 const activitiesData = activitiesRes.data.results || activitiesRes.data;
                 setActivities(Array.isArray(activitiesData) ? activitiesData : []);
 
+                clearTimeout(timer);
+                if (slowLoadId) toast.dismiss(slowLoadId);
                 setLoading(false);
             } catch (err) {
+                clearTimeout(timer);
+                if (slowLoadId) toast.dismiss(slowLoadId);
                 console.error("Failed to load dashboard data", err);
                 setLoading(false);
+                toast.error("Failed to load dashboard data. Please refresh the page.");
             }
         };
 

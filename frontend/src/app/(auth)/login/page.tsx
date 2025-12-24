@@ -12,7 +12,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useAuthStore } from '@/store/auth'
 import api from '@/lib/api'
 import { getDeviceFingerprint } from '@/lib/fingerprint'
-import { Shield, AlertCircle } from "lucide-react"
+import { Shield, AlertCircle, Info } from "lucide-react"
+import { toast } from 'sonner'
 
 const loginSchema = z.object({
     username: z.string().min(1, 'Username is required'),
@@ -25,9 +26,9 @@ export default function LoginPage() {
     const router = useRouter()
     const login = useAuthStore((state) => state.login)
     const { user, isAuthenticated } = useAuthStore()
-    const [error, setError] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState(false)
     const [mounted, setMounted] = useState(false)
+    const [slowLoadId, setSlowLoadId] = useState<string | number | null>(null)
 
     useEffect(() => {
         setMounted(true)
@@ -48,11 +49,26 @@ export default function LoginPage() {
     })
 
     const onSubmit = async (data: FormData) => {
+        if (!navigator.onLine) {
+            toast.error('No internet connection. Please check your network.', {
+                description: 'Weak or missing internet detected.'
+            })
+            return
+        }
+
         setIsLoading(true)
-        setError(null)
+
+        // Setup cold-start timer
+        const timer = setTimeout(() => {
+            const id = toast.info('Our server is waking up...', {
+                description: 'It might take up to a minute to start the backend. Please stay with us!',
+                duration: 10000,
+                icon: <Info className="w-4 h-4" />
+            })
+            setSlowLoadId(id)
+        }, 5000)
 
         try {
-            // Get device fingerprint
             const deviceFingerprint = await getDeviceFingerprint()
 
             const response = await api.post('/auth/login/', {
@@ -61,11 +77,14 @@ export default function LoginPage() {
                 device_fingerprint: deviceFingerprint,
             })
 
-            const { user, access, refresh } = response.data // Assuming backend returns user object inside data
-            // If backend returns simplified JWT, we might need to decode or fetch user separately
-            // Based on serializers.py: `data['user'] = UserSerializer(self.user).data`
+            const { user, access, refresh } = response.data
+
+            // Clear slow load toast if it exists
+            if (slowLoadId) toast.dismiss(slowLoadId)
+            clearTimeout(timer)
 
             login(user, access, refresh)
+            toast.success('Logged in successfully!')
 
             if (user.role === 'admin') {
                 router.push('/admin/dashboard')
@@ -73,13 +92,25 @@ export default function LoginPage() {
                 router.push('/dashboard')
             }
         } catch (err: any) {
+            clearTimeout(timer)
+            if (slowLoadId) toast.dismiss(slowLoadId)
+
+            let message = 'Invalid username or password'
+            let description = 'Please check your credentials and try again.'
+
             if (err.response?.data?.error) {
-                setError(err.response.data.error)
+                message = err.response.data.error
             } else if (err.response?.data?.detail) {
-                setError(err.response.data.detail)
-            } else {
-                setError('Invalid username or password')
+                message = err.response.data.detail
+            } else if (!err.response) {
+                message = 'Network Error'
+                description = 'Could not reach the server. Your internet might be weak or our server is down.'
             }
+
+            toast.error(message, {
+                description,
+                duration: 6000 // Error toasts stay a bit longer
+            })
         } finally {
             setIsLoading(false)
         }
@@ -101,13 +132,6 @@ export default function LoginPage() {
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                        {error && (
-                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm flex items-start gap-2">
-                                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                                <span>{error}</span>
-                            </div>
-                        )}
-
                         <div className="space-y-2">
                             <label htmlFor="username" className="text-sm font-medium text-gray-700">Username</label>
                             <Input
@@ -131,7 +155,7 @@ export default function LoginPage() {
                         </div>
 
                         <Button type="submit" className="w-full h-10" disabled={isLoading}>
-                            {isLoading ? "Logging in..." : "Login"}
+                            {isLoading ? "Connecting..." : "Login"}
                         </Button>
                     </form>
                 </CardContent>
