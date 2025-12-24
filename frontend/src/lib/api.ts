@@ -28,7 +28,10 @@ api.interceptors.response.use(
         const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
         // If error is 401 and we haven't retried yet
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        // AND it's not a login or register request (where 401 means invalid credentials/failure)
+        const isAuthEndpoint = originalRequest.url?.includes('/auth/login/') || originalRequest.url?.includes('/auth/register/');
+
+        if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
             originalRequest._retry = true;
 
             try {
@@ -38,35 +41,32 @@ api.interceptors.response.use(
                 }
 
                 // Try to refresh token
-                // Use a clean axios instance to avoid infinite loops
                 const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/auth/refresh/`, {
                     refresh: refreshToken,
                 });
 
                 const { access, refresh } = response.data;
-
                 localStorage.setItem('accessToken', access);
                 if (refresh) {
                     localStorage.setItem('refreshToken', refresh);
                 }
 
-                // Retry original request with new token
                 if (originalRequest.headers) {
                     originalRequest.headers.Authorization = `Bearer ${access}`;
                 }
 
                 return api(originalRequest);
             } catch (refreshError) {
-                // If refresh fails, logout user
                 if (typeof window !== 'undefined') {
-                    // Import dynamically to avoid circular dependencies if any
                     const { useAuthStore } = await import('@/store/auth');
-                    // We don't call .logout() because that tries to hit the API again
-                    // Instead we just clear the local state
                     localStorage.removeItem('accessToken');
                     localStorage.removeItem('refreshToken');
                     useAuthStore.setState({ user: null, accessToken: null, isAuthenticated: false });
-                    window.location.href = '/login';
+
+                    // Only redirect if we're not already on the login page to avoid refresh loop
+                    if (window.location.pathname !== '/login') {
+                        window.location.href = '/login';
+                    }
                 }
                 return Promise.reject(refreshError);
             }
