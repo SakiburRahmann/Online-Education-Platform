@@ -58,14 +58,14 @@ export default function TestRunnerPage({ params }: { params: Promise<{ id: strin
                 const session = sessionRes.data;
                 setSessionId(session.id);
 
-                // Resume logic
                 if (session.answers) {
                     setAnswers(session.answers);
                 }
 
+                const sessionStartTime = session.started_at || session.created_at;
                 const sessionLimit = session.time_limit_seconds || (testRes.data.duration_minutes * 60) || 1800;
-                const startTime = new Date(session.started_at).getTime();
-                const elapsed = isNaN(startTime) ? 0 : Math.floor((Date.now() - startTime) / 1000);
+                const startTime = new Date(sessionStartTime).getTime();
+                const elapsed = isNaN(startTime) ? 0 : Math.max(0, Math.floor((Date.now() - startTime) / 1000));
                 const remaining = sessionLimit - elapsed;
                 setTimeLeft(Math.max(0, remaining));
 

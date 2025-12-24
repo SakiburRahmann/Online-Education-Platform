@@ -176,7 +176,6 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.MultiPartParser',
     ),
     'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
-    'DATETIME_FORMAT': '%Y-%m-%dT%H:%M:%S.%fZ',
 }
 
 # JWT Settings
