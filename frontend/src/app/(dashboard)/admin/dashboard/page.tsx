@@ -33,7 +33,9 @@ export default function AdminDashboardPage() {
                 clearTimeout(timer);
                 if (slowLoadId) toast.dismiss(slowLoadId);
                 console.error("Failed to fetch dashboard stats:", err);
-                toast.error("Failed to load dashboard statistics.");
+                toast.error("Failed to load dashboard statistics.", {
+                    duration: 8000
+                });
             } finally {
                 setLoading(false);
             }
@@ -45,12 +47,12 @@ export default function AdminDashboardPage() {
     const handleVerifyPayment = async (id: string) => {
         try {
             await api.post(`/payments/payments/${id}/verify/`);
-            toast.success("Payment verified and access granted!");
+            toast.success("Payment verified and access granted!", { duration: 8000 });
             // Refresh data
             const res = await api.get('/auth/dashboard-stats/');
             setData(res.data);
         } catch (err) {
-            toast.error("Failed to verify payment.");
+            toast.error("Failed to verify payment.", { duration: 8000 });
         }
     };
 

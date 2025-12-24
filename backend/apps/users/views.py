@@ -37,7 +37,20 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         try:
             response = super().post(request, *args, **kwargs)
         except Exception as e:
-            # Re-raise or handle as DRF normally would
+            # Check if user exists but password failed
+            username = request.data.get('username')
+            if username:
+                user_exists = User.objects.filter(username=username).exists()
+                if user_exists:
+                    return Response({
+                        'error': 'Incorrect Password',
+                        'detail': 'The password you entered is incorrect. Please try again or contact the admin.'
+                    }, status=status.HTTP_401_UNAUTHORIZED)
+                else:
+                    return Response({
+                        'error': 'User Not Found',
+                        'detail': f'No account found with the username "{username}". Please check for typos.'
+                    }, status=status.HTTP_401_UNAUTHORIZED)
             raise e
         
         if response.status_code == 200:

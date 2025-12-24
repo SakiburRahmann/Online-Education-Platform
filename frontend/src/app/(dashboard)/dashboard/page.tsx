@@ -65,7 +65,9 @@ export default function DashboardPage() {
                 if (slowLoadId) toast.dismiss(slowLoadId);
                 console.error("Failed to load dashboard data", err);
                 setLoading(false);
-                toast.error("Failed to load dashboard data. Please refresh the page.");
+                toast.error("Failed to load dashboard data. Please refresh the page.", {
+                    duration: 8000
+                });
             }
         };
 

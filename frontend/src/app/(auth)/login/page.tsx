@@ -95,13 +95,15 @@ export default function LoginPage() {
             clearTimeout(timer)
             if (slowLoadId) toast.dismiss(slowLoadId)
 
-            let message = 'Invalid username or password'
-            let description = 'Please check your credentials and try again.'
+            let message = 'Login failed'
+            let description = 'Please check your username and password and try again.'
 
-            if (err.response?.data?.error) {
-                message = err.response.data.error
-            } else if (err.response?.data?.detail) {
-                message = err.response.data.detail
+            if (err.response?.status === 403) {
+                message = 'Device Lock Active'
+                description = err.response.data.error || err.response.data.detail || 'This ID is already logged in on another device.'
+            } else if (err.response?.status === 401) {
+                message = err.response.data.error || 'Invalid Credentials'
+                description = err.response.data.detail || 'The username or password you entered is incorrect.'
             } else if (!err.response) {
                 message = 'Network Error'
                 description = 'Could not reach the server. Your internet might be weak or our server is down.'
@@ -109,7 +111,7 @@ export default function LoginPage() {
 
             toast.error(message, {
                 description,
-                duration: Infinity // Error toasts stay until closed by user
+                duration: 8000
             })
         } finally {
             setIsLoading(false)

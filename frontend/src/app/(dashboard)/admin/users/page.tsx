@@ -72,10 +72,10 @@ export default function AdminUsersPage() {
                     setConfirmDialog(prev => ({ ...prev, loading: true }));
                     await api.delete(`/auth/users/${id}/`);
                     setUsers(prev => prev.filter(u => u.id !== id));
-                    toast.success("User deleted successfully.");
+                    toast.success("User deleted successfully.", { duration: 8000 });
                 } catch (err: any) {
                     const msg = err.response?.data?.detail || "Failed to delete user";
-                    toast.error(msg);
+                    toast.error(msg, { duration: 8000 });
                 } finally {
                     setConfirmDialog(prev => ({ ...prev, open: false, loading: false }));
                 }
@@ -88,13 +88,13 @@ export default function AdminUsersPage() {
         try {
             setActionLoading(true);
             await api.post(`/auth/users/${resetPasswordUser.id}/reset_password/`, { password: newPassword });
-            toast.success(`Password for ${resetPasswordUser.username} has been reset.`);
+            toast.success(`Password for ${resetPasswordUser.username} has been reset.`, { duration: 8000 });
             setResetPasswordUser(null);
             setNewPassword('');
         } catch (err: any) {
             console.error("Reset password failed", err);
             const msg = err.response?.data?.error || err.response?.data?.detail || "Failed to reset password";
-            toast.error(msg);
+            toast.error(msg, { duration: 8000 });
         } finally {
             setActionLoading(false);
         }
@@ -109,10 +109,10 @@ export default function AdminUsersPage() {
                 try {
                     setConfirmDialog(prev => ({ ...prev, loading: true }));
                     await api.post(`/auth/users/${id}/reset_device/`);
-                    toast.success(`Device lock for ${username} has been cleared.`);
+                    toast.success(`Device lock for ${username} has been cleared.`, { duration: 8000 });
                 } catch (err: any) {
                     const msg = err.response?.data?.error || err.response?.data?.detail || "Failed to clear device lock";
-                    toast.error(msg);
+                    toast.error(msg, { duration: 8000 });
                 } finally {
                     setConfirmDialog(prev => ({ ...prev, open: false, loading: false }));
                 }
