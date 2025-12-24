@@ -109,8 +109,8 @@ export default function AdminTestsPage() {
                         </div>
                     )}
 
-                    <div className="rounded-md border overflow-hidden">
-                        <table className="w-full text-sm text-left">
+                    <div className="rounded-md border overflow-x-auto">
+                        <table className="w-full text-sm text-left min-w-[700px] md:min-w-full">
                             <thead className="bg-gray-50 border-b">
                                 <tr>
                                     <th className="p-4 font-medium text-gray-500">Test Name</th>

@@ -143,12 +143,12 @@ export default function TestRunnerPage({ params }: { params: Promise<{ id: strin
     return (
         <div className="max-w-4xl mx-auto space-y-6">
             {/* Header with Timer */}
-            <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm sticky top-0 z-10 border-b">
-                <div>
+            <div className="flex flex-col sm:flex-row items-center justify-between bg-white p-4 rounded-lg shadow-sm sticky top-[64px] md:top-0 z-10 border-b gap-4">
+                <div className="text-center sm:text-left">
                     <h2 className="font-bold text-gray-800">{test.name}</h2>
                     <div className="text-xs text-gray-500">Question {currentQuestionIndex + 1} of {questions.length}</div>
                 </div>
-                <div className={`flex items-center gap-2 font-mono text-xl font-bold px-4 py-2 rounded-md ${timeLeft < 300 ? 'bg-red-100 text-red-600' : 'bg-blue-50 text-blue-600'}`}>
+                <div className={`flex items-center gap-2 font-mono text-xl font-bold px-4 py-2 rounded-md ${timeLeft < 300 ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-blue-50 text-blue-600'}`}>
                     <Clock className="w-5 h-5" />
                     {formatTime(timeLeft)}
                 </div>
@@ -187,7 +187,7 @@ export default function TestRunnerPage({ params }: { params: Promise<{ id: strin
                     </div>
                 </CardContent>
 
-                <CardFooter className="border-t bg-gray-50 p-6 flex justify-between">
+                <CardFooter className="border-t bg-gray-50 p-6 flex justify-between gap-4">
                     <Button
                         variant="outline"
                         onClick={handlePrev}
@@ -213,18 +213,21 @@ export default function TestRunnerPage({ params }: { params: Promise<{ id: strin
                 </CardFooter>
             </Card>
 
-            <div className="flex justify-center flex-wrap gap-2">
-                {questions.map((q, idx) => (
-                    <button
-                        key={q.id}
-                        onClick={() => setCurrentQuestionIndex(idx)}
-                        className={`w-8 h-8 rounded-full text-xs font-medium flex items-center justify-center transition-colors
-               ${idx === currentQuestionIndex ? 'bg-blue-600 text-white ring-2 ring-offset-2 ring-blue-600' :
-                                answers[q.id] ? 'bg-blue-100 text-blue-800' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}
-                    >
-                        {idx + 1}
-                    </button>
-                ))}
+            <div className="bg-white p-4 rounded-lg shadow-sm border">
+                <p className="text-xs font-bold text-gray-500 uppercase mb-3 text-center sm:text-left">Question Navigator</p>
+                <div className="flex justify-center sm:justify-start flex-wrap gap-2 max-h-40 overflow-y-auto p-1">
+                    {questions.map((q, idx) => (
+                        <button
+                            key={q.id}
+                            onClick={() => setCurrentQuestionIndex(idx)}
+                            className={`w-10 h-10 rounded-lg text-xs font-bold flex items-center justify-center transition-all border
+                ${idx === currentQuestionIndex ? 'bg-blue-600 text-white border-blue-600 shadow-md transform scale-105' :
+                                    answers[q.id] ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'}`}
+                        >
+                            {idx + 1}
+                        </button>
+                    ))}
+                </div>
             </div>
         </div>
     );

@@ -256,8 +256,8 @@ export default function SampleTestPage() {
 
     if (questions.length > 0) {
         return (
-            <div className="max-w-3xl mx-auto py-12 px-4">
-                <div className="flex justify-between items-center mb-6 sticky top-0 bg-gray-50 py-4 z-10">
+            <div className="max-w-3xl mx-auto py-8 md:py-12 px-4">
+                <div className="flex flex-col sm:flex-row justify-between items-center mb-6 sticky top-[64px] md:top-0 bg-gray-50/95 backdrop-blur-sm py-4 z-10 gap-4">
                     <div className="flex flex-col">
                         <span className="text-sm font-bold text-gray-500 uppercase tracking-wide">Question {currentQ + 1} of {questions.length}</span>
                         <div className="w-full bg-gray-200 h-1.5 rounded-full mt-2 w-32">

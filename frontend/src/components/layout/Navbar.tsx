@@ -29,6 +29,10 @@ export default function Navbar() {
         { href: user?.role === 'admin' ? '/admin/settings' : '/dashboard/profile', label: user?.role === 'admin' ? 'Settings' : 'Profile' },
     ];
 
+    const isPortal = pathname.startsWith('/admin') || pathname.startsWith('/dashboard');
+
+    if (isPortal) return null;
+
     return (
         <nav className="bg-white border-b sticky top-0 z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
